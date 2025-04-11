@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>FastMapper</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>FastMapper Projesi</Authors>
+    <Description>Sınıflar arasında hızlı veri transferi sağlayan küçük ve etkili bir mapperlama kütüphanesi</Description>
+    <PackageTags>mapper;automapper;mapping;reflection</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/yourusername/fast-mapper</RepositoryUrl>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+</Project> 
