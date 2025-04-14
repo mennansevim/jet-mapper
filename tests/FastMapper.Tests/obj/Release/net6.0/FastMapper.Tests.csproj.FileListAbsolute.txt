@@ -98,3 +98,4 @@
 /Users/sevimm/Documents/Projects/fast-mapper/tests/FastMapper.Tests/obj/Release/net6.0/FastMapper.Tests.pdb
 /Users/sevimm/Documents/Projects/fast-mapper/tests/FastMapper.Tests/obj/Release/net6.0/FastMapper.Tests.genruntimeconfig.cache
 /Users/sevimm/Documents/Projects/fast-mapper/tests/FastMapper.Tests/obj/Release/net6.0/ref/FastMapper.Tests.dll
+/Users/sevimm/Documents/Projects/fast-mapper/tests/FastMapper.Tests/obj/Release/net6.0/FastMapper.Tests.sourcelink.json
