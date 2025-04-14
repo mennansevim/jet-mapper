@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("Sınıflar arasında hızlı veri transferi sağlayan küçük ve etkili bir mapperlama kü" +
     "tüphanesi"))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6408d9ddbc9fb0600b750a4bc435838cd554b078")]
 [assembly: System.Reflection.AssemblyProductAttribute("FastMapper")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FastMapper")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
