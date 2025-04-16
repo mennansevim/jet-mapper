@@ -14,6 +14,8 @@ FastMapper provides a simple, fast, and flexible solution for object mapping bet
 - 🔄 Automatic mapping of complex objects and collections
 - 🛠️ Custom mapping definitions and type converters
 - 🛡️ Protection against overflow and conversion errors
+- 🔒 Proper handling of existing target object properties
+- 📊 Optimized performance with property and enum caching
 
 ## Installation
 
@@ -140,17 +142,73 @@ var customerDto = customer.FastMapTo<CustomerDto>();
 // customerDto.Orders[0].Items[0].ProductId = 101
 ```
 
+### Existing Object Mapping
+
+When mapping to an existing object, FastMapper preserves properties of the target object that don't have corresponding source properties:
+
+```csharp
+// Target with existing values
+var existingPerson = new PersonDto
+{
+    Id = 0,
+    FirstName = "",
+    LastName = "", 
+    FullName = "Should Remain"
+};
+
+// Source object
+var person = new Person
+{
+    Id = 1,
+    FirstName = "John",
+    LastName = "Doe"
+};
+
+// Map to the existing object
+person.FastMapTo(existingPerson);
+
+// Result:
+// existingPerson.Id = 1
+// existingPerson.FirstName = "John"
+// existingPerson.LastName = "Doe"
+// existingPerson.FullName = "Should Remain" (preserved because source doesn't have this property)
+```
+
+## Performance Optimizations
+
+FastMapper includes several performance optimizations:
+
+- **Property Caching**: Uses `ConcurrentDictionary` to cache property information, reducing the cost of reflection operations
+- **Enum Caching**: Caches enum conversion results to improve performance when converting strings to enums repeatedly
+- **Efficient Type Conversions**: Optimized code paths for common conversion scenarios
+- **Smart Deep Copy**: Avoids unnecessary operations during complex object mapping
+
 ## Supported Type Conversions
 
 FastMapper automatically supports the following type conversions:
 
 - Conversions between numeric types (int→double, decimal→int, etc.)
 - String↔numeric type conversions
-- String↔enum conversions
+- String↔enum conversions (with caching for better performance)
 - DateTime↔string conversions
 - TimeSpan→long conversion (milliseconds)
 - Guid→string conversion
 - Boolean↔string conversions
+
+## Benchmark Results
+
+Performance comparison between manual mapping and FastMapper:
+
+| Method                          | Mean      | Allocated |
+|---------------------------------|----------:|----------:|
+| ManualMap_Simple                | 10.21 ns  | 48 B      |
+| ManualMap_Complex               | 261.15 ns | 976 B     |
+| FastMapper_Simple               | 1.44 μs   | 1520 B    |
+| FastMapper_Complex              | 81.85 μs  | 18871 B   |
+| FastMapper_WithCustomMapping    | 83.86 μs  | 18871 B   |
+| FastMapper_TypeConverter        | 83.30 μs  | 19051 B   |
+| ManualMap_BulkMapping           | 15.23 μs  | 64600 B   |
+| FastMapper_BulkMapping          | 1.51 ms   | 1536602 B |
 
 ## Why FastMapper?
 
@@ -161,6 +219,7 @@ FastMapper automatically supports the following type conversions:
 - **Lower Memory Usage**: A lightweight structure that only consumes the resources it needs
 - **Deep Object Support**: Automatically maps nested objects
 - **Easy Learning Curve**: Can be quickly integrated with minimal API
+- **Performant**: Optimized with caching mechanisms and smart property handling
 
 ## License
 

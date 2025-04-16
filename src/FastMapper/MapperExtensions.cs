@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Linq.Expressions;
+using System.Collections.Concurrent;
 
 namespace FastMapper
 {
@@ -16,6 +17,13 @@ namespace FastMapper
         
         // Özel tip dönüştürücüleri için sözlük
         private static readonly Dictionary<string, Func<object, object>> _typeConverters = new Dictionary<string, Func<object, object>>();
+        
+        // Property önbellekleri - tekrarlanan yansıma operasyonlarını azaltmak için
+        private static readonly ConcurrentDictionary<Type, List<PropertyInfo>> _targetPropertyCache = new ConcurrentDictionary<Type, List<PropertyInfo>>();
+        private static readonly ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> _sourcePropertyCache = new ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>>();
+        
+        // Enum dönüşüm önbelleği
+        private static readonly ConcurrentDictionary<string, object> _enumCache = new ConcurrentDictionary<string, object>();
 
         /// <summary>
         /// Kaynak nesneyi hedef tipine eşler
@@ -146,15 +154,17 @@ namespace FastMapper
 
         private static void CopyProperties(object source, object target, Type sourceType, Type targetType)
         {
-            // Hedef tipin tüm property'lerini al
-            var targetProperties = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(p => p.CanWrite)
-                .ToList();
+            // Hedef tipin tüm property'lerini önbellekten al veya ekle
+            var targetProperties = _targetPropertyCache.GetOrAdd(targetType, type => 
+                type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => p.CanWrite)
+                    .ToList());
 
-            // Kaynak tipin tüm property'lerini al
-            var sourceProperties = sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(p => p.CanRead)
-                .ToDictionary(p => p.Name, p => p);
+            // Kaynak tipin tüm property'lerini önbellekten al veya ekle
+            var sourceProperties = _sourcePropertyCache.GetOrAdd(sourceType, type =>
+                type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => p.CanRead)
+                    .ToDictionary(p => p.Name, p => p));
 
             foreach (var targetProp in targetProperties)
             {
@@ -168,7 +178,7 @@ namespace FastMapper
                     continue;
                 }
 
-                // Kaynak property'yi bul
+                // Kaynak property'yi bul - aynı isimde bir özellik yoksa mevcut değeri koru
                 if (sourceProperties.TryGetValue(targetProp.Name, out var sourceProp))
                 {
                     try
@@ -241,6 +251,8 @@ namespace FastMapper
                         // Hata durumunda bu property'yi atla
                     }
                 }
+                // Eğer kaynak özelliği yoksa, hedef özelliğin değerini koruyalım - KODA EKLENDİ
+                // (Eğer özel bir davranış istenmiyorsa bu şekilde kalabilir)
             }
         }
         
@@ -251,6 +263,36 @@ namespace FastMapper
             {
                 result = converter(value);
                 return true;
+            }
+            
+            // String-to-Enum dönüşümü için optimize edilmiş yol
+            if (sourceType == typeof(string) && targetType.IsEnum)
+            {
+                var stringValue = value as string;
+                if (!string.IsNullOrEmpty(stringValue))
+                {
+                    var cacheKey = $"{targetType.FullName}_{stringValue}";
+                    
+                    // Önbellekte varsa kullan
+                    if (_enumCache.TryGetValue(cacheKey, out var cachedValue))
+                    {
+                        result = cachedValue;
+                        return true;
+                    }
+                    
+                    try
+                    {
+                        // Enum.Parse yöntemiyle çöz ve önbelleğe al
+                        var parsedEnum = Enum.Parse(targetType, stringValue, true);
+                        _enumCache.TryAdd(cacheKey, parsedEnum);
+                        result = parsedEnum;
+                        return true;
+                    }
+                    catch
+                    {
+                        // Çözümleme başarısız olduysa, sonucu null olarak belirle
+                    }
+                }
             }
             
             result = null;
@@ -282,55 +324,157 @@ namespace FastMapper
         
         private static object SafeNumericConvert(object value, Type targetType)
         {
-            switch (Type.GetTypeCode(targetType))
+            if (value == null)
+                return null;
+                
+            Type valueType = value.GetType();
+            TypeCode sourceTypeCode = Type.GetTypeCode(valueType);
+            TypeCode targetTypeCode = Type.GetTypeCode(targetType);
+            
+            // Aynı tip ise doğrudan dön
+            if (valueType == targetType)
+                return value;
+                
+            try
             {
-                case TypeCode.Byte:
-                    return Convert.ToByte(value);
-                case TypeCode.SByte:
-                    return Convert.ToSByte(value);
-                case TypeCode.UInt16:
-                    return Convert.ToUInt16(value);
-                case TypeCode.UInt32:
-                    return Convert.ToUInt32(value);
-                case TypeCode.UInt64:
-                    return Convert.ToUInt64(value);
-                case TypeCode.Int16:
-                    return Convert.ToInt16(value);
-                case TypeCode.Int32:
-                    // Int32 için taşma durumunu kontrol et
-                    if (value is long longValue)
-                    {
-                        if (longValue > int.MaxValue)
-                            return int.MaxValue;
-                        if (longValue < int.MinValue)
-                            return int.MinValue;
-                    }
-                    else if (value is double doubleValue)
-                    {
-                        if (doubleValue > int.MaxValue)
-                            return int.MaxValue;
-                        if (doubleValue < int.MinValue)
-                            return int.MinValue;
-                    }
-                    else if (value is decimal decimalValue)
-                    {
-                        if (decimalValue > int.MaxValue)
-                            return int.MaxValue;
-                        if (decimalValue < int.MinValue)
-                            return int.MinValue;
-                    }
-                    return Convert.ToInt32(value);
-                case TypeCode.Int64:
-                    return Convert.ToInt64(value);
-                case TypeCode.Decimal:
-                    return Convert.ToDecimal(value);
-                case TypeCode.Double:
-                    return Convert.ToDouble(value);
-                case TypeCode.Single:
-                    return Convert.ToSingle(value);
-                default:
-                    return Convert.ChangeType(value, targetType);
+                // En yaygın dönüşüm yolları için optimize edilmiş yöntemler
+                switch (targetTypeCode)
+                {
+                    case TypeCode.Byte:
+                        if (sourceTypeCode == TypeCode.Int32)
+                        {
+                            int intVal = (int)value;
+                            if (intVal < byte.MinValue || intVal > byte.MaxValue)
+                                return intVal < byte.MinValue ? byte.MinValue : byte.MaxValue;
+                            return (byte)intVal;
+                        }
+                        return Convert.ToByte(value);
+                        
+                    case TypeCode.SByte:
+                        if (sourceTypeCode == TypeCode.Int32)
+                        {
+                            int intVal = (int)value;
+                            if (intVal < sbyte.MinValue || intVal > sbyte.MaxValue)
+                                return intVal < sbyte.MinValue ? sbyte.MinValue : sbyte.MaxValue;
+                            return (sbyte)intVal;
+                        }
+                        return Convert.ToSByte(value);
+                        
+                    case TypeCode.Int16:
+                        if (sourceTypeCode == TypeCode.Int32)
+                        {
+                            int intVal = (int)value;
+                            if (intVal < short.MinValue || intVal > short.MaxValue)
+                                return intVal < short.MinValue ? short.MinValue : short.MaxValue;
+                            return (short)intVal;
+                        }
+                        return Convert.ToInt16(value);
+                        
+                    case TypeCode.UInt16:
+                        if (sourceTypeCode == TypeCode.Int32)
+                        {
+                            int intVal = (int)value;
+                            if (intVal < ushort.MinValue || intVal > ushort.MaxValue)
+                                return intVal < ushort.MinValue ? ushort.MinValue : ushort.MaxValue;
+                            return (ushort)intVal;
+                        }
+                        return Convert.ToUInt16(value);
+                        
+                    case TypeCode.Int32:
+                        if (sourceTypeCode == TypeCode.Int64)
+                        {
+                            long longVal = (long)value;
+                            if (longVal < int.MinValue || longVal > int.MaxValue)
+                                return longVal < int.MinValue ? int.MinValue : int.MaxValue;
+                            return (int)longVal;
+                        }
+                        else if (sourceTypeCode == TypeCode.Double)
+                        {
+                            double doubleVal = (double)value;
+                            if (doubleVal < int.MinValue || doubleVal > int.MaxValue)
+                                return doubleVal < int.MinValue ? int.MinValue : int.MaxValue;
+                            return (int)doubleVal;
+                        }
+                        else if (sourceTypeCode == TypeCode.Decimal)
+                        {
+                            decimal decimalVal = (decimal)value;
+                            if (decimalVal < int.MinValue || decimalVal > int.MaxValue)
+                                return decimalVal < int.MinValue ? int.MinValue : int.MaxValue;
+                            return (int)decimalVal;
+                        }
+                        return Convert.ToInt32(value);
+                        
+                    case TypeCode.UInt32:
+                        if (sourceTypeCode == TypeCode.Int32)
+                        {
+                            int intVal = (int)value;
+                            if (intVal < 0)
+                                return (uint)0;
+                            return (uint)intVal;
+                        }
+                        return Convert.ToUInt32(value);
+                        
+                    case TypeCode.Int64:
+                        return Convert.ToInt64(value);
+                        
+                    case TypeCode.UInt64:
+                        return Convert.ToUInt64(value);
+                        
+                    case TypeCode.Single:
+                        return Convert.ToSingle(value);
+                        
+                    case TypeCode.Double:
+                        return Convert.ToDouble(value);
+                        
+                    case TypeCode.Decimal:
+                        return Convert.ToDecimal(value);
+                        
+                    default:
+                        return Convert.ChangeType(value, targetType);
+                }
             }
+            catch
+            {
+                // Taşma veya dönüşüm hataları durumunda en iyi yaklaşımı uygula
+                try
+                {
+                    switch (targetTypeCode)
+                    {
+                        case TypeCode.Byte:
+                            return value is IConvertible ? ClampValue(Convert.ToDouble(value), byte.MinValue, byte.MaxValue, Convert.ToByte) : default(byte);
+                        case TypeCode.SByte:
+                            return value is IConvertible ? ClampValue(Convert.ToDouble(value), sbyte.MinValue, sbyte.MaxValue, Convert.ToSByte) : default(sbyte);
+                        case TypeCode.Int16:
+                            return value is IConvertible ? ClampValue(Convert.ToDouble(value), short.MinValue, short.MaxValue, Convert.ToInt16) : default(short);
+                        case TypeCode.UInt16:
+                            return value is IConvertible ? ClampValue(Convert.ToDouble(value), ushort.MinValue, ushort.MaxValue, Convert.ToUInt16) : default(ushort);
+                        case TypeCode.Int32:
+                            return value is IConvertible ? ClampValue(Convert.ToDouble(value), int.MinValue, int.MaxValue, Convert.ToInt32) : default(int);
+                        case TypeCode.UInt32:
+                            return value is IConvertible ? ClampValue(Convert.ToDouble(value), uint.MinValue, uint.MaxValue, Convert.ToUInt32) : default(uint);
+                        case TypeCode.Int64:
+                            return value is IConvertible ? ClampValue(Convert.ToDouble(value), long.MinValue, long.MaxValue, Convert.ToInt64) : default(long);
+                        case TypeCode.UInt64:
+                            return value is IConvertible ? ClampValue(Convert.ToDouble(value), ulong.MinValue, ulong.MaxValue, Convert.ToUInt64) : default(ulong);
+                        default:
+                            return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
+                    }
+                }
+                catch
+                {
+                    // Son çare
+                    return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
+                }
+            }
+        }
+        
+        private static T ClampValue<T>(double value, T min, T max, Func<double, T> converter)
+        {
+            if (Convert.ToDouble(min) > value)
+                return min;
+            if (Convert.ToDouble(max) < value)
+                return max;
+            return converter(value);
         }
 
         private static string GetMappingKey(Type sourceType, Type targetType, string targetPropertyName)
@@ -444,6 +588,72 @@ namespace FastMapper
                 }
             }
             return result;
+        }
+
+        /// <summary>
+        /// Bir koleksiyondaki tüm öğeleri eşler
+        /// </summary>
+        /// <typeparam name="TSource">Kaynak öğe tipi</typeparam>
+        /// <typeparam name="TTarget">Hedef öğe tipi</typeparam>
+        /// <param name="source">Kaynak koleksiyon</param>
+        /// <returns>Eşlenmiş hedef koleksiyonu</returns>
+        public static List<TTarget> FastMapToList<TSource, TTarget>(this IEnumerable<TSource> source)
+            where TTarget : new()
+            where TSource : class
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            var result = new List<TTarget>();
+            var sourceType = typeof(TSource);
+            var targetType = typeof(TTarget);
+            
+            // Tüm koleksiyonu tek geçişte işleyelim
+            foreach (var sourceItem in source)
+            {
+                if (sourceItem == null)
+                    continue;
+                    
+                var targetItem = new TTarget();
+                CopyProperties(sourceItem, targetItem, sourceType, targetType);
+                result.Add(targetItem);
+            }
+            
+            return result;
+        }
+        
+        /// <summary>
+        /// Bir koleksiyondaki tüm öğeleri eldeki koleksiyona eşler
+        /// </summary>
+        /// <typeparam name="TSource">Kaynak öğe tipi</typeparam>
+        /// <typeparam name="TTarget">Hedef öğe tipi</typeparam>
+        /// <param name="source">Kaynak koleksiyon</param>
+        /// <param name="destination">Hedef koleksiyon</param>
+        /// <returns>Eşlenmiş hedef koleksiyonu</returns>
+        public static List<TTarget> FastMapToList<TSource, TTarget>(this IEnumerable<TSource> source, List<TTarget> destination)
+            where TTarget : new()
+            where TSource : class
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+            if (destination == null)
+                throw new ArgumentNullException(nameof(destination));
+                
+            var sourceType = typeof(TSource);
+            var targetType = typeof(TTarget);
+            
+            // Her bir öğeyi eşleyelim
+            foreach (var sourceItem in source)
+            {
+                if (sourceItem == null)
+                    continue;
+                    
+                var targetItem = new TTarget();
+                CopyProperties(sourceItem, targetItem, sourceType, targetType);
+                destination.Add(targetItem);
+            }
+            
+            return destination;
         }
     }
 } 
