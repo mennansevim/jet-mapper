@@ -8,11 +8,23 @@
     ".NETCoreApp,Version=v6.0": {
       "FastMapper.Benchmarks/1.0.0": {
         "dependencies": {
+          "AutoMapper": "12.0.1",
           "BenchmarkDotNet": "0.13.5",
           "FastMapper": "1.0.0"
         },
         "runtime": {
           "FastMapper.Benchmarks.dll": {}
+        }
+      },
+      "AutoMapper/12.0.1": {
+        "dependencies": {
+          "Microsoft.CSharp": "4.7.0"
+        },
+        "runtime": {
+          "lib/netstandard2.1/AutoMapper.dll": {
+            "assemblyVersion": "12.0.0.0",
+            "fileVersion": "12.0.1.0"
+          }
         }
       },
       "BenchmarkDotNet/0.13.5": {
@@ -233,6 +245,7 @@
           }
         }
       },
+      "Microsoft.CSharp/4.7.0": {},
       "Microsoft.Diagnostics.NETCore.Client/0.2.251802": {
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "1.1.0",
@@ -446,6 +459,13 @@
       "serviceable": false,
       "sha512": ""
     },
+    "AutoMapper/12.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-hvV62vl6Hp/WfQ24yzo3Co9+OPl8wH8hApwVtgWpiAynVJkUcs7xvehnSftawL8Pe8FrPffBRM3hwzLQqWDNjA==",
+      "path": "automapper/12.0.1",
+      "hashPath": "automapper.12.0.1.nupkg.sha512"
+    },
     "BenchmarkDotNet/0.13.5": {
       "type": "package",
       "serviceable": true,
@@ -508,6 +528,13 @@
       "sha512": "sha512-hWFUxc0iUbVvIKWJODErOeOa5GiqZuEcetxaCfHqZ04zHy0ZCLx3v4/TdF/6Erx1mXPHfoT2Tiz5rZCQZ6OyxQ==",
       "path": "microsoft.codeanalysis.csharp/3.0.0",
       "hashPath": "microsoft.codeanalysis.csharp.3.0.0.nupkg.sha512"
+    },
+    "Microsoft.CSharp/4.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-pTj+D3uJWyN3My70i2Hqo+OXixq3Os2D1nJ2x92FFo6sk8fYS1m1WLNTs0Dc1uPaViH0YvEEwvzddQ7y4rhXmA==",
+      "path": "microsoft.csharp/4.7.0",
+      "hashPath": "microsoft.csharp.4.7.0.nupkg.sha512"
     },
     "Microsoft.Diagnostics.NETCore.Client/0.2.251802": {
       "type": "package",

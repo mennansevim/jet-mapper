@@ -1,260 +1,327 @@
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Order;
-using FastMapper.Benchmarks.Models;
-using System;
+using BenchmarkDotNet.Running;
+using AutoMapper;
+using FastMapper;
 using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace FastMapper.Benchmarks
 {
+    public class BenchmarkModels
+    {
+        public class SimpleSource
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
+            public string Email { get; set; }
+        }
+
+        public class SimpleTarget
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
+            public string Email { get; set; }
+        }
+
+        public class ComplexSource
+        {
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public string Email { get; set; }
+            public DateTime BirthDate { get; set; }
+            public int Score { get; set; }
+            public bool IsActive { get; set; }
+            public List<ContactInfo> Contacts { get; set; }
+            public Address HomeAddress { get; set; }
+        }
+
+        public class ContactInfo
+        {
+            public string Type { get; set; }
+            public string Value { get; set; }
+        }
+
+        public class Address
+        {
+            public string Street { get; set; }
+            public string City { get; set; }
+            public string ZipCode { get; set; }
+            public string Country { get; set; }
+        }
+
+        public class CustomerDto
+        {
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public string FullName { get; set; }
+            public string Email { get; set; }
+            public DateTime BirthDate { get; set; }
+            public int Score { get; set; }
+            public bool IsActive { get; set; }
+            public List<ContactInfo> Contacts { get; set; }
+            public Address HomeAddress { get; set; }
+        }
+    }
+
     [MemoryDiagnoser]
-    [Orderer(SummaryOrderPolicy.FastestToSlowest)]
     [RankColumn]
     public class MapperBenchmarks
     {
-        private SimpleSource _simpleSource = default!;
-        private Customer _complexSource = default!;
-        private List<SimpleSource> _simpleList = default!;
+        private BenchmarkModels.SimpleSource _simpleSource;
+        private BenchmarkModels.SimpleTarget _simpleExistingTarget;
+        private BenchmarkModels.ComplexSource _complexSource;
+        private BenchmarkModels.CustomerDto _complexExistingTarget;
+        private List<BenchmarkModels.ComplexSource> _bulkSources;
+        private AutoMapper.IMapper _autoMapper;
 
         [GlobalSetup]
         public void Setup()
         {
-            // Setup test data
-            _simpleSource = new SimpleSource
+            // Setup simple source
+            _simpleSource = new BenchmarkModels.SimpleSource
             {
-                Id = 1,
-                Name = "Test Name",
-                Description = "Test Description",
-                CreatedAt = DateTime.Now,
-                IsActive = true
+                Name = "John Doe",
+                Age = 30,
+                Email = "john@example.com"
             };
 
-            _complexSource = new Customer
+            _simpleExistingTarget = new BenchmarkModels.SimpleTarget();
+
+            // Setup complex source  
+            _complexSource = new BenchmarkModels.ComplexSource
             {
-                Id = 1,
                 FirstName = "John",
-                LastName = "Doe",
+                LastName = "Doe", 
                 Email = "john.doe@example.com",
-                BirthDate = new DateTime(1980, 1, 1),
-                HomeAddress = new Address
+                BirthDate = new DateTime(1990, 5, 15),
+                Score = 95,
+                IsActive = true,
+                Contacts = new List<BenchmarkModels.ContactInfo>
+                {
+                    new BenchmarkModels.ContactInfo { Type = "Phone", Value = "123-456-7890" },
+                    new BenchmarkModels.ContactInfo { Type = "Fax", Value = "123-456-7891" }
+                },
+                HomeAddress = new BenchmarkModels.Address
                 {
                     Street = "123 Main St",
-                    City = "New York",
-                    State = "NY",
+                    City = "New York", 
                     ZipCode = "10001",
                     Country = "USA"
-                },
-                Orders = new List<Order>
-                {
-                    new Order
-                    {
-                        OrderId = 1001,
-                        Total = 99.95m,
-                        OrderDate = DateTime.Now.AddDays(-5),
-                        Status = "Completed",
-                        Items = new List<OrderItem>
-                        {
-                            new OrderItem { ItemId = 1, ProductName = "Product 1", Quantity = 2, UnitPrice = 24.99m },
-                            new OrderItem { ItemId = 2, ProductName = "Product 2", Quantity = 1, UnitPrice = 49.97m }
-                        }
-                    },
-                    new Order
-                    {
-                        OrderId = 1002,
-                        Total = 149.90m,
-                        OrderDate = DateTime.Now.AddDays(-2),
-                        Status = "Shipped",
-                        Items = new List<OrderItem>
-                        {
-                            new OrderItem { ItemId = 3, ProductName = "Product 3", Quantity = 3, UnitPrice = 29.99m },
-                            new OrderItem { ItemId = 4, ProductName = "Product 4", Quantity = 2, UnitPrice = 29.97m }
-                        }
-                    }
                 }
             };
 
-            // Create a list of simple objects for bulk mapping test
-            _simpleList = new List<SimpleSource>();
+            _complexExistingTarget = new BenchmarkModels.CustomerDto();
+
+            // Setup bulk sources
+            _bulkSources = new List<BenchmarkModels.ComplexSource>();
             for (int i = 0; i < 1000; i++)
             {
-                _simpleList.Add(new SimpleSource
+                _bulkSources.Add(new BenchmarkModels.ComplexSource
                 {
-                    Id = i,
-                    Name = $"Name {i}",
-                    Description = $"Description {i}",
-                    CreatedAt = DateTime.Now.AddDays(-i),
-                    IsActive = i % 2 == 0
-                });
-            }
-
-            // Configure FastMapper for custom mappings
-            MapperExtensions.ClearAllCustomMappings();
-            
-            MapperExtensions.AddCustomMapping<Customer, CustomerDto, string>(
-                "FullName",
-                c => $"{c.FirstName} {c.LastName}"
-            );
-
-            MapperExtensions.AddCustomMapping<OrderItem, OrderItemDto, decimal>(
-                "LineTotal",
-                item => item.Quantity * item.UnitPrice
-            );
-        }
-
-        [Benchmark(Baseline = true)]
-        public SimpleDestination ManualMap_Simple()
-        {
-            return new SimpleDestination
-            {
-                Id = _simpleSource.Id,
-                Name = _simpleSource.Name,
-                Description = _simpleSource.Description,
-                CreatedAt = _simpleSource.CreatedAt,
-                IsActive = _simpleSource.IsActive
-            };
-        }
-
-        [Benchmark]
-        public SimpleDestination FastMapper_Simple()
-        {
-            return _simpleSource.FastMapTo<SimpleDestination>();
-        }
-
-        [Benchmark]
-        public SimpleDestination FastMapper_Simple_ExistingObject()
-        {
-            var dest = new SimpleDestination();
-            _simpleSource.FastMapTo(dest);
-            return dest;
-        }
-
-        [Benchmark]
-        public CustomerDto ManualMap_Complex()
-        {
-            var customer = _complexSource;
-            var dto = new CustomerDto
-            {
-                Id = customer.Id,
-                FirstName = customer.FirstName,
-                LastName = customer.LastName,
-                FullName = $"{customer.FirstName} {customer.LastName}",
-                Email = customer.Email,
-                BirthDate = customer.BirthDate,
-                HomeAddress = new AddressDto
-                {
-                    Street = customer.HomeAddress.Street,
-                    City = customer.HomeAddress.City,
-                    State = customer.HomeAddress.State,
-                    ZipCode = customer.HomeAddress.ZipCode,
-                    Country = customer.HomeAddress.Country
-                },
-                Orders = new List<OrderDto>()
-            };
-
-            foreach (var order in customer.Orders)
-            {
-                var orderDto = new OrderDto
-                {
-                    OrderId = order.OrderId,
-                    Total = order.Total,
-                    OrderDate = order.OrderDate,
-                    Status = order.Status,
-                    Items = new List<OrderItemDto>()
-                };
-
-                foreach (var item in order.Items)
-                {
-                    orderDto.Items.Add(new OrderItemDto
+                    FirstName = $"FirstName{i}",
+                    LastName = $"LastName{i}",
+                    Email = $"user{i}@example.com",
+                    BirthDate = new DateTime(1990 + (i % 30), (i % 12) + 1, (i % 28) + 1),
+                    Score = i % 100,
+                    IsActive = i % 2 == 0,
+                    Contacts = new List<BenchmarkModels.ContactInfo>
                     {
-                        ItemId = item.ItemId,
-                        ProductName = item.ProductName,
-                        Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice,
-                        LineTotal = item.Quantity * item.UnitPrice
-                    });
-                }
-
-                dto.Orders.Add(orderDto);
+                        new BenchmarkModels.ContactInfo { Type = "Email", Value = $"contact{i}@example.com" }
+                    },
+                    HomeAddress = new BenchmarkModels.Address
+                    {
+                        Street = $"{i} Test St",
+                        City = "TestCity",
+                        ZipCode = $"{10000 + i}",
+                        Country = "TestCountry"
+                    }
+                });
             }
 
-            return dto;
-        }
-
-        [Benchmark]
-        public CustomerDto FastMapper_Complex()
-        {
-            return _complexSource.FastMapTo<CustomerDto>();
-        }
-
-        [Benchmark]
-        public CustomerDto FastMapper_Complex_ExistingObject()
-        {
-            var dto = new CustomerDto();
-            _complexSource.FastMapTo(dto);
-            return dto;
-        }
-
-        [Benchmark]
-        public List<SimpleDestination> ManualMap_BulkMapping()
-        {
-            var result = new List<SimpleDestination>();
-            foreach (var item in _simpleList)
+            // Setup AutoMapper
+            var config = new MapperConfiguration(cfg =>
             {
-                result.Add(new SimpleDestination
+                cfg.CreateMap<BenchmarkModels.SimpleSource, BenchmarkModels.SimpleTarget>();
+                cfg.CreateMap<BenchmarkModels.ComplexSource, BenchmarkModels.CustomerDto>()
+                   .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"));
+                cfg.CreateMap<BenchmarkModels.ContactInfo, BenchmarkModels.ContactInfo>();
+                cfg.CreateMap<BenchmarkModels.Address, BenchmarkModels.Address>();
+            });
+            _autoMapper = config.CreateMapper();
+
+            // Setup custom mappings for FastMapper
+            MapperExtensions.AddCustomMapping<BenchmarkModels.ComplexSource, BenchmarkModels.CustomerDto>(
+                "FirstName", "FullName", source => 
                 {
-                    Id = item.Id,
-                    Name = item.Name,
-                    Description = item.Description,
-                    CreatedAt = item.CreatedAt,
-                    IsActive = item.IsActive
+                    var complexSource = (BenchmarkModels.ComplexSource)source;
+                    return $"{complexSource.FirstName} {complexSource.LastName}";
+                });
+        }
+
+        // Manual mapping baseline
+        [Benchmark(Baseline = true)]
+        public BenchmarkModels.SimpleTarget ManualMap_Simple()
+        {
+            return new BenchmarkModels.SimpleTarget
+            {
+                Name = _simpleSource.Name,
+                Age = _simpleSource.Age,
+                Email = _simpleSource.Email
+            };
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto ManualMap_Complex()
+        {
+            return new BenchmarkModels.CustomerDto
+            {
+                FirstName = _complexSource.FirstName,
+                LastName = _complexSource.LastName,
+                FullName = $"{_complexSource.FirstName} {_complexSource.LastName}",
+                Email = _complexSource.Email,
+                BirthDate = _complexSource.BirthDate,
+                Score = _complexSource.Score,
+                IsActive = _complexSource.IsActive,
+                Contacts = _complexSource.Contacts?.Select(c => new BenchmarkModels.ContactInfo { Type = c.Type, Value = c.Value }).ToList(),
+                HomeAddress = _complexSource.HomeAddress == null ? null : new BenchmarkModels.Address
+                {
+                    Street = _complexSource.HomeAddress.Street,
+                    City = _complexSource.HomeAddress.City,
+                    ZipCode = _complexSource.HomeAddress.ZipCode,
+                    Country = _complexSource.HomeAddress.Country
+                }
+            };
+        }
+
+        [Benchmark]
+        public List<BenchmarkModels.CustomerDto> ManualMap_BulkMapping()
+        {
+            var result = new List<BenchmarkModels.CustomerDto>(_bulkSources.Count);
+            foreach (var source in _bulkSources)
+            {
+                result.Add(new BenchmarkModels.CustomerDto
+                {
+                    FirstName = source.FirstName,
+                    LastName = source.LastName,
+                    FullName = $"{source.FirstName} {source.LastName}",
+                    Email = source.Email,
+                    BirthDate = source.BirthDate,
+                    Score = source.Score,
+                    IsActive = source.IsActive,
+                    Contacts = source.Contacts?.Select(c => new BenchmarkModels.ContactInfo { Type = c.Type, Value = c.Value }).ToList(),
+                    HomeAddress = source.HomeAddress == null ? null : new BenchmarkModels.Address
+                    {
+                        Street = source.HomeAddress.Street,
+                        City = source.HomeAddress.City,
+                        ZipCode = source.HomeAddress.ZipCode,
+                        Country = source.HomeAddress.Country
+                    }
                 });
             }
             return result;
         }
 
+        // AutoMapper benchmarks
         [Benchmark]
-        public List<SimpleDestination> FastMapper_BulkMapping()
+        public BenchmarkModels.SimpleTarget AutoMapper_Simple()
         {
-            var result = new List<SimpleDestination>();
-            foreach (var item in _simpleList)
-            {
-                result.Add(item.FastMapTo<SimpleDestination>());
-            }
-            return result;
+            return _autoMapper.Map<BenchmarkModels.SimpleTarget>(_simpleSource);
         }
 
         [Benchmark]
-        public CustomerDto FastMapper_WithCustomMapping()
+        public BenchmarkModels.SimpleTarget AutoMapper_Simple_ExistingObject()
         {
-            return _complexSource.FastMapTo<CustomerDto>();
+            return _autoMapper.Map(_simpleSource, _simpleExistingTarget);
         }
 
         [Benchmark]
-        public CustomerDto FastMapper_WithCombine()
+        public BenchmarkModels.CustomerDto AutoMapper_Complex()
         {
-            return _complexSource.FastMapTo<CustomerDto>()
-                .WithCombine("FullName", _complexSource, c => $"{c.FirstName} {c.LastName}");
+            return _autoMapper.Map<BenchmarkModels.CustomerDto>(_complexSource);
         }
 
         [Benchmark]
-        public CustomerDto FastMapper_WithMultipleCombines()
+        public BenchmarkModels.CustomerDto AutoMapper_Complex_ExistingObject()
         {
-            return _complexSource.FastMapTo<CustomerDto>()
-                .WithMultipleCombines(_complexSource,
-                    ("FullName", c => $"{c.FirstName} {c.LastName}"),
-                    ("Email", c => $"{c.Email} (Verified)")
-                );
+            return _autoMapper.Map(_complexSource, _complexExistingTarget);
         }
 
         [Benchmark]
-        public CustomerDto FastMapper_TypeConverter()
+        public List<BenchmarkModels.CustomerDto> AutoMapper_BulkMapping()
         {
-            MapperExtensions.ClearAllTypeConverters();
-            MapperExtensions.AddTypeConverter<DateTime, string>(dt => dt.ToString("yyyy-MM-dd"));
-            
-            var dto = _complexSource.FastMapTo<CustomerDto>();
-            
-            MapperExtensions.ClearAllTypeConverters();
-            return dto;
+            return _autoMapper.Map<List<BenchmarkModels.CustomerDto>>(_bulkSources);
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto AutoMapper_WithCustomMapping()
+        {
+            return _autoMapper.Map<BenchmarkModels.CustomerDto>(_complexSource);
+        }
+
+        // FastMapper benchmarks
+        [Benchmark]
+        public BenchmarkModels.SimpleTarget FastMapper_Simple()
+        {
+            return _simpleSource.FastMapTo<BenchmarkModels.SimpleTarget>();
+        }
+
+        [Benchmark]
+        public BenchmarkModels.SimpleTarget FastMapper_Simple_ExistingObject()
+        {
+            _simpleSource.FastMapTo(_simpleExistingTarget);
+            return _simpleExistingTarget;
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto FastMapper_Complex()
+        {
+            return _complexSource.FastMapTo<BenchmarkModels.CustomerDto>();
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto FastMapper_Complex_ExistingObject()
+        {
+            _complexSource.FastMapTo(_complexExistingTarget);
+            return _complexExistingTarget;
+        }
+
+        [Benchmark]
+        public List<BenchmarkModels.CustomerDto> FastMapper_BulkMapping()
+        {
+            return _bulkSources.Cast<object>().FastMapToList<BenchmarkModels.CustomerDto>();
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto FastMapper_WithCustomMapping()
+        {
+            return _complexSource.FastMapTo<BenchmarkModels.CustomerDto>();
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto FastMapper_WithCombine()
+        {
+            return _complexSource.FastMapTo<BenchmarkModels.CustomerDto>();
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto FastMapper_WithMultipleCombines()
+        {
+            return _complexSource.FastMapTo<BenchmarkModels.CustomerDto>();
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto FastMapper_TypeConverter()
+        {
+            return _complexSource.FastMapTo<BenchmarkModels.CustomerDto>();
+        }
+    }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            BenchmarkRunner.Run<MapperBenchmarks>();
         }
     }
 } 

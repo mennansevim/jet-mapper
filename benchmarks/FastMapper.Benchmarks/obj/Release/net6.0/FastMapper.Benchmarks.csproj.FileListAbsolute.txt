@@ -95,3 +95,4 @@
 /Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/obj/Release/net6.0/FastMapper.Benchmarks.genruntimeconfig.cache
 /Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/obj/Release/net6.0/ref/FastMapper.Benchmarks.dll
 /Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/obj/Release/net6.0/FastMapper.Benchmarks.sourcelink.json
+/Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/bin/Release/net6.0/AutoMapper.dll

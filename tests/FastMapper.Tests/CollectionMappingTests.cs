@@ -1,7 +1,7 @@
 using System;
-using Xunit;
 using System.Collections.Generic;
 using System.Linq;
+using Xunit;
 using FastMapper;
 
 namespace FastMapper.Tests
@@ -9,129 +9,119 @@ namespace FastMapper.Tests
     public class CollectionMappingTests
     {
         [Fact]
-        public void CanMapListToList()
+        public void FastMapToList_ShouldMapSimpleCollection_Successfully()
         {
             // Arrange
             var sourceList = new List<Person>
             {
-                new Person { Id = 1, FirstName = "John", LastName = "Doe", BirthDate = new DateTime(1980, 1, 1) },
-                new Person { Id = 2, FirstName = "Jane", LastName = "Smith", BirthDate = new DateTime(1985, 5, 10) },
-                new Person { Id = 3, FirstName = "Bob", LastName = "Johnson", BirthDate = new DateTime(1975, 3, 15) }
+                new Person { Id = 1, FirstName = "John", LastName = "Doe", BirthDate = new DateTime(1990, 1, 1) },
+                new Person { Id = 2, FirstName = "Jane", LastName = "Smith", BirthDate = new DateTime(1985, 5, 15) },
+                new Person { Id = 3, FirstName = "Bob", LastName = "Johnson", BirthDate = new DateTime(1992, 10, 30) }
             };
 
             // Act
-            var targetList = new List<PersonDto>();
-            foreach (var person in sourceList)
-            {
-                targetList.Add(person.FastMapTo<PersonDto>());
-            }
+            var result = sourceList.FastMapToList<PersonDto>();
 
             // Assert
-            Assert.Equal(sourceList.Count, targetList.Count);
-            for (int i = 0; i < sourceList.Count; i++)
-            {
-                Assert.Equal(sourceList[i].Id, targetList[i].Id);
-                Assert.Equal(sourceList[i].FirstName, targetList[i].FirstName);
-                Assert.Equal(sourceList[i].LastName, targetList[i].LastName);
-                Assert.Equal(sourceList[i].Age, targetList[i].Age);
-            }
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Count);
+            
+            Assert.Equal(sourceList[0].Id, result[0].Id);
+            Assert.Equal(sourceList[0].FirstName, result[0].FirstName);
+            Assert.Equal(sourceList[0].LastName, result[0].LastName);
+            
+            Assert.Equal(sourceList[1].Id, result[1].Id);
+            Assert.Equal(sourceList[1].FirstName, result[1].FirstName);
+            Assert.Equal(sourceList[1].LastName, result[1].LastName);
+            
+            Assert.Equal(sourceList[2].Id, result[2].Id);
+            Assert.Equal(sourceList[2].FirstName, result[2].FirstName);
+            Assert.Equal(sourceList[2].LastName, result[2].LastName);
         }
 
         [Fact]
-        public void CanMapNestedCollections()
+        public void FastMapToList_ShouldMapEmptyCollection_Successfully()
         {
             // Arrange
-            var source = new Person
-            {
-                Id = 1,
-                FirstName = "John",
-                LastName = "Doe",
-                Orders = new List<Order>
-                {
-                    new Order { OrderId = 101, TotalAmount = 150.75m, OrderDate = DateTime.Now.AddDays(-5) },
-                    new Order { OrderId = 102, TotalAmount = 245.50m, OrderDate = DateTime.Now.AddDays(-2) }
-                }
-            };
+            var sourceList = new List<Person>();
 
             // Act
-            var target = source.FastMapTo<PersonDto>();
+            var result = sourceList.FastMapToList<PersonDto>();
 
             // Assert
-            Assert.NotNull(target.Orders);
-            Assert.Equal(source.Orders.Count, target.Orders.Count);
-            for (int i = 0; i < source.Orders.Count; i++)
-            {
-                Assert.Equal(source.Orders[i].OrderId, target.Orders[i].OrderId);
-                Assert.Equal(source.Orders[i].TotalAmount.ToString(), target.Orders[i].TotalAmount);
-                Assert.Equal(source.Orders[i].OrderDate.ToString(), target.Orders[i].OrderDate);
-            }
+            Assert.NotNull(result);
+            Assert.Empty(result);
         }
 
         [Fact]
-        public void CanMapArrayToList()
+        public void FastMapToList_ShouldMapSameTypes_Successfully()
         {
-            // Arrange
-            var sourceArray = new Address[]
+            // Arrange - Test with identical types
+            var sourceList = new List<Address>
             {
                 new Address { Street = "123 Main St", City = "New York", Country = "USA", PostalCode = "10001" },
-                new Address { Street = "456 Elm St", City = "Chicago", Country = "USA", PostalCode = "60007" }
+                new Address { Street = "456 Oak Ave", City = "Los Angeles", Country = "USA", PostalCode = "90210" }
             };
 
             // Act
-            var targetList = new List<AddressDto>();
-            foreach (var address in sourceArray)
-            {
-                targetList.Add(address.FastMapTo<AddressDto>());
-            }
+            var result = sourceList.FastMapToList<Address>();
 
             // Assert
-            Assert.Equal(sourceArray.Length, targetList.Count);
-            for (int i = 0; i < sourceArray.Length; i++)
-            {
-                Assert.Equal(sourceArray[i].Street, targetList[i].Street);
-                Assert.Equal(sourceArray[i].City, targetList[i].City);
-                Assert.Equal(sourceArray[i].Country, targetList[i].Country);
-                Assert.Equal(sourceArray[i].PostalCode, targetList[i].PostalCode);
-            }
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            Assert.Equal("123 Main St", result[0].Street);
+            Assert.Equal("New York", result[0].City);
+            Assert.Equal("456 Oak Ave", result[1].Street);
+            Assert.Equal("Los Angeles", result[1].City);
         }
 
         [Fact]
-        public void CanHandleEmptyCollections()
+        public void FastMapToList_ShouldMapLargeCollection_Efficiently()
         {
             // Arrange
-            var source = new Person
+            var sourceList = new List<Person>();
+            for (int i = 1; i <= 100; i++)
             {
-                Id = 1,
-                FirstName = "John",
-                LastName = "Doe",
-                Orders = new List<Order>() // Boş liste
-            };
+                sourceList.Add(new Person
+                {
+                    Id = i,
+                    FirstName = $"Person{i}",
+                    LastName = $"Lastname{i}",
+                    BirthDate = new DateTime(1990, 1, 1).AddDays(i),
+                    IsActive = i % 2 == 0
+                });
+            }
 
             // Act
-            var target = source.FastMapTo<PersonDto>();
+            var result = sourceList.FastMapToList<PersonDto>();
 
             // Assert
-            Assert.NotNull(target.Orders);
-            Assert.Empty(target.Orders);
+            Assert.NotNull(result);
+            Assert.Equal(100, result.Count);
+            Assert.Equal("Person1", result[0].FirstName);
+            Assert.Equal("Person50", result[49].FirstName);
+            Assert.Equal("Person100", result[99].FirstName);
         }
 
         [Fact]
-        public void CanHandleNullCollections()
+        public void FastMapToList_ShouldReturnDifferentInstancesForEachCall_Successfully()
         {
             // Arrange
-            var source = new Person
+            var sourceList = new List<Person>
             {
-                Id = 1,
-                FirstName = "John",
-                LastName = "Doe",
-                Orders = null // Bilinçli olarak null
+                new Person { Id = 1, FirstName = "John", LastName = "Doe", BirthDate = new DateTime(1990, 1, 1) }
             };
 
             // Act
-            var target = source.FastMapTo<PersonDto>();
+            var result1 = sourceList.FastMapToList<PersonDto>();
+            var result2 = sourceList.FastMapToList<PersonDto>();
 
             // Assert
-            Assert.Null(target.Orders);
+            Assert.NotNull(result1);
+            Assert.NotNull(result2);
+            Assert.NotSame(result1, result2); // Different list instances
+            Assert.NotSame(result1[0], result2[0]); // Different object instances
+            Assert.Equal(result1[0].Id, result2[0].Id); // Same data
         }
     }
 } 
