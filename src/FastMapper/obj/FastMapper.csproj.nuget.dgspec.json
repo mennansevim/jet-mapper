@@ -5,7 +5,7 @@
   },
   "projects": {
     "/Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/FastMapper.csproj": {
-      "version": "1.0.0",
+      "version": "2.0.0",
       "restore": {
         "projectUniqueName": "/Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/FastMapper.csproj",
         "projectName": "FastMapper",
