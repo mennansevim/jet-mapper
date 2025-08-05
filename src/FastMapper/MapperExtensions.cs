@@ -39,7 +39,26 @@ namespace FastMapper
             var mapper = (Func<object, TTarget>)_typedMappers.GetOrAdd(key, 
                 _ => CreateUltraFastTypedMapper<TTarget>(sourceType, targetType));
             
-            return mapper(source);
+            var startTime = DateTime.UtcNow;
+            TTarget result;
+            
+            try
+            {
+                result = mapper(source);
+                
+                // Diagnostic kayıt
+                DiagnosticMapper.RecordMapping<object, TTarget>(
+                    DateTime.UtcNow - startTime, true);
+            }
+            catch (Exception ex)
+            {
+                // Diagnostic kayıt
+                DiagnosticMapper.RecordMapping<object, TTarget>(
+                    DateTime.UtcNow - startTime, false, ex);
+                throw;
+            }
+            
+            return result;
         }
 
         /// <summary>
@@ -58,7 +77,23 @@ namespace FastMapper
             var mapper = (Action<object, TTarget>)_typedMappers.GetOrAdd(key, 
                 _ => CreateUltraFastInPlaceMapper<TTarget>(sourceType, targetType));
             
-            mapper(source, target);
+            var startTime = DateTime.UtcNow;
+            
+            try
+            {
+                mapper(source, target);
+                
+                // Diagnostic kayıt
+                DiagnosticMapper.RecordMapping<object, TTarget>(
+                    DateTime.UtcNow - startTime, true);
+            }
+            catch (Exception ex)
+            {
+                // Diagnostic kayıt
+                DiagnosticMapper.RecordMapping<object, TTarget>(
+                    DateTime.UtcNow - startTime, false, ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -370,10 +405,47 @@ namespace FastMapper
             _customMappings.TryAdd(key, mapping);
         }
 
+        /// <summary>
+        /// Hedef property adı ve lambda ile özel mapping tanımla
+        /// </summary>
+        public static void AddCustomMapping<TSource, TTarget>(string targetProperty, Func<TSource, object> mapping)
+        {
+            var key = $"{typeof(TSource).FullName}.->{typeof(TTarget).FullName}.{targetProperty}";
+            _customMappings.TryAdd(key, mapping);
+        }
+
         public static void AddTypeConverter<TSource, TTarget>(Func<TSource, TTarget> converter)
         {
             var key = GetTypeKey(typeof(TSource), typeof(TTarget));
             _typeConverters.TryAdd(key, converter);
+        }
+
+        /// <summary>
+        /// Gelişmiş in-place mapping: skipIfNull ve skipProperties desteği
+        /// </summary>
+        public static void FastMapTo<TTarget>(this object source, TTarget target, bool skipIfNull = false, string[] skipProperties = null)
+        {
+            if (source == null || target == null) return;
+            var sourceType = source.GetType();
+            var targetType = typeof(TTarget);
+            var key = GetTypeKey(sourceType, targetType) | unchecked((long)0x8000000000000000);
+            var mapper = (Action<object, TTarget>)_typedMappers.GetOrAdd(key, _ => CreateUltraFastInPlaceMapper<TTarget>(sourceType, targetType));
+
+            // Özelleştirilmiş alan güncelleme
+            var sourceProps = sourceType.GetProperties();
+            var targetProps = targetType.GetProperties();
+            foreach (var tProp in targetProps)
+            {
+                if (skipProperties != null && skipProperties.Contains(tProp.Name))
+                    continue;
+                var sProp = sourceProps.FirstOrDefault(x => x.Name == tProp.Name);
+                if (sProp == null || !sProp.CanRead || !tProp.CanWrite)
+                    continue;
+                var value = sProp.GetValue(source);
+                if (skipIfNull && value == null)
+                    continue;
+                tProp.SetValue(target, value);
+            }
         }
 
         public static void ClearAllCaches()

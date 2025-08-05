@@ -95,3 +95,11 @@
 /Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/obj/Debug/net6.0/FastMapper.Benchmarks.genruntimeconfig.cache
 /Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/obj/Debug/net6.0/ref/FastMapper.Benchmarks.dll
 /Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/obj/Debug/net6.0/FastMapper.Benchmarks.sourcelink.json
+/Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/bin/Debug/net6.0/AutoMapper.dll
+/Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/bin/Debug/net6.0/Microsoft.Win32.SystemEvents.dll
+/Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/bin/Debug/net6.0/Newtonsoft.Json.dll
+/Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/bin/Debug/net6.0/ScottPlot.dll
+/Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/bin/Debug/net6.0/System.Drawing.Common.dll
+/Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/bin/Debug/net6.0/runtimes/win/lib/netcoreapp3.0/Microsoft.Win32.SystemEvents.dll
+/Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/bin/Debug/net6.0/runtimes/unix/lib/netcoreapp3.0/System.Drawing.Common.dll
+/Users/sevimm/Documents/Projects/fast-mapper/benchmarks/FastMapper.Benchmarks/bin/Debug/net6.0/runtimes/win/lib/netcoreapp3.0/System.Drawing.Common.dll

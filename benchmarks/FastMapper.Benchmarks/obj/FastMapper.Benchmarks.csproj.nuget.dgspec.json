@@ -55,6 +55,10 @@
             "BenchmarkDotNet": {
               "target": "Package",
               "version": "[0.13.5, )"
+            },
+            "ScottPlot": {
+              "target": "Package",
+              "version": "[4.1.68, )"
             }
           },
           "imports": [
@@ -92,7 +96,7 @@
       }
     },
     "/Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/FastMapper.csproj": {
-      "version": "1.0.0",
+      "version": "2.0.0",
       "restore": {
         "projectUniqueName": "/Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/FastMapper.csproj",
         "projectName": "FastMapper",
@@ -136,6 +140,10 @@
               "target": "Package",
               "version": "[2.0.3, )",
               "autoReferenced": true
+            },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
             }
           },
           "imports": [

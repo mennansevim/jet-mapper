@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FastMapper.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3771f4d81fa1103ac2c41353084d83cd55a6bc06")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9ae43a7bebcf6a96314e555b5df53696ea88a37c")]
 [assembly: System.Reflection.AssemblyProductAttribute("FastMapper.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FastMapper.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,29 +1,33 @@
-# 🚀 FastMapper - Usage Examples
+# FastMapper Kullanım Örnekleri
 
-This page demonstrates all capabilities and usage scenarios of FastMapper. **2-2.5x faster performance than AutoMapper!**
+Bu doküman, FastMapper'ın tüm özelliklerini pratik örneklerle açıklar.
 
-## 📋 Table of Contents
+## 📋 İçindekiler
 
-- [Basic Usage](#basic-usage)
-- [Collection Mapping](#collection-mapping)  
-- [Custom Property Mapping](#custom-property-mapping)
-- [Type Converter](#type-converter)
-- [Existing Object Mapping](#existing-object-mapping)
-- [Performance Optimizations](#performance-optimizations)
-- [Cache Management](#cache-management)
-- [Real-World Examples](#real-world-examples)
+1. [Temel Mapping](#temel-mapping)
+2. [Fluent API](#fluent-api)
+3. [Koşullu Mapping](#koşullu-mapping)
+4. [Custom Mapping](#custom-mapping)
+5. [Type Converter](#type-converter)
+6. [Asenkron Mapping](#asenkron-mapping)
+7. [Diff Mapping](#diff-mapping)
+8. [Snapshot & Restore](#snapshot--restore)
+9. [Mapping Validator](#mapping-validator)
+10. [Partial Merge](#partial-merge)
+11. [Diagnostic & Profiling](#diagnostic--profiling)
+12. [Gerçek Dünya Senaryoları](#gerçek-dünya-senaryoları)
 
 ---
 
-## 🔥 Basic Usage
+## 🚀 Temel Mapping
 
-### Simple Object Mapping
+### Basit Nesne Eşleme
 
 ```csharp
 using FastMapper;
 
-// Source and target classes
-public class User
+// Kaynak sınıf
+public class Person
 {
     public int Id { get; set; }
     public string FirstName { get; set; }
@@ -32,366 +36,637 @@ public class User
     public bool IsActive { get; set; }
 }
 
-public class UserDto
+// Hedef sınıf
+public class PersonDto
 {
     public int Id { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
-    public int Age { get; set; }
+    public DateTime BirthDate { get; set; }
     public bool IsActive { get; set; }
 }
 
-// ULTRA-FAST mapping!
-var user = new User
-{
-    Id = 1,
-    FirstName = "Mennan",
-    LastName = "Sevim", 
-    BirthDate = new DateTime(1990, 5, 15),
-    IsActive = true
-};
-
-// 🚀 Single line mapping
-var userDto = user.FastMapTo<UserDto>();
-
-Console.WriteLine($"User: {userDto.FirstName} {userDto.LastName}, Age: {userDto.Age}");
-// Output: User: Mennan Sevim, Age: 33
-```
-
-### Same Type Mapping (Performance Test)
-
-```csharp
-// Same type to type mapping - Ultra-fast!
-var originalUser = new User { Id = 1, FirstName = "Miray" };
-var copiedUser = originalUser.FastMapTo<User>();
-
-Console.WriteLine($"Original: {originalUser.FirstName}, Copy: {copiedUser.FirstName}");
-// Different objects, same data!
-```
-
----
-
-## 📦 Collection Mapping
-
-### List to List Mapping
-
-```csharp
-// Large collection mapping - ULTRA-PERFORMANT!
-var users = new List<User>();
-for (int i = 1; i <= 1000; i++)
-{
-    var firstName = i % 3 == 0 ? "Mennan" : i % 3 == 1 ? "Miray" : "İlhan";
-    var lastName = i % 3 == 0 ? "Sevim" : i % 3 == 1 ? "Sevim" : "Mansız";
-    
-    users.Add(new User
-    {
-        Id = i,
-        FirstName = firstName,
-        LastName = lastName,
-        BirthDate = DateTime.Now.AddYears(-25 - (i % 40)),
-        IsActive = i % 2 == 0
-    });
-}
-
-// 🚀 Map 1000 objects in milliseconds!
-var userDtos = users.FastMapToList<UserDto>();
-
-Console.WriteLine($"Mapped {userDtos.Count} users in milliseconds!");
-Console.WriteLine($"First user: {userDtos[0].FirstName}, Age: {userDtos[0].Age}");
-Console.WriteLine($"Last user: {userDtos[999].FirstName}, Age: {userDtos[999].Age}");
-```
-
-### Empty Collection Handling
-
-```csharp
-// Empty collections are safely handled
-var emptyUsers = new List<User>();
-var emptyDtos = emptyUsers.FastMapToList<UserDto>();
-
-Console.WriteLine($"Empty collection count: {emptyDtos.Count}"); // 0
-```
-
----
-
-## 🎯 Custom Property Mapping
-
-### Simple Custom Mapping
-
-```csharp
-// FullName property doesn't exist in User but exists in UserDto
-public class UserDto
-{
-    public int Id { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string FullName { get; set; } // This will be filled with custom mapping
-    public int Age { get; set; }
-    public string Status { get; set; } // This too
-}
-
-// Add custom mappings
-MapperExtensions.AddCustomMapping<User, UserDto>(
-    "FirstName", "FullName", 
-    source => $"{((User)source).FirstName} {((User)source).LastName}"
-);
-
-MapperExtensions.AddCustomMapping<User, UserDto>(
-    "IsActive", "Status", 
-    source => ((User)source).IsActive ? "Active" : "Inactive"
-);
-
-// Now custom mappings will work
-var user = new User 
+// Kullanım
+var person = new Person 
 { 
     Id = 1, 
-    FirstName = "İlhan", 
-    LastName = "Mansız", 
+    FirstName = "John", 
+    LastName = "Doe", 
+    BirthDate = new DateTime(1990, 1, 1),
     IsActive = true 
 };
 
-var dto = user.FastMapTo<UserDto>();
-
-Console.WriteLine($"FullName: {dto.FullName}"); // İlhan Mansız
-Console.WriteLine($"Status: {dto.Status}"); // Active
-
-// Cleanup
-MapperExtensions.ClearAllCustomMappings();
+var dto = person.FastMapTo<PersonDto>();
+Console.WriteLine($"DTO: {dto.FirstName} {dto.LastName}");
 ```
 
-### Address Custom Mapping
+### Mevcut Nesneye Mapping
 
 ```csharp
-public class Address
-{
-    public string Street { get; set; }
-    public string City { get; set; }
-    public string Country { get; set; }
-    public string PostalCode { get; set; }
-}
+var existingDto = new PersonDto { Id = 1 };
+person.FastMapTo(existingDto); // Mevcut nesneyi günceller
+```
 
-public class AddressDto
-{
-    public string Street { get; set; }
-    public string City { get; set; }
-    public string Country { get; set; }
-    public string PostalCode { get; set; }
-    public string FullAddress { get; set; } // Combine all
-}
+### Koleksiyon Mapping
 
-// Complex transformation
-MapperExtensions.AddCustomMapping<Address, AddressDto>(
-    "Street", "FullAddress", 
-    source => 
-    {
-        var addr = (Address)source;
-        return $"{addr.Street}, {addr.City}, {addr.Country} {addr.PostalCode}";
-    }
-);
-
-var address = new Address
+```csharp
+var personList = new List<Person>
 {
-    Street = "Barbaros Blvd 123",
-    City = "Istanbul", 
-    Country = "Turkey",
-    PostalCode = "34000"
+    new Person { Id = 1, FirstName = "John", LastName = "Doe" },
+    new Person { Id = 2, FirstName = "Jane", LastName = "Smith" }
 };
 
-var addressDto = address.FastMapTo<AddressDto>();
-Console.WriteLine($"Full Address: {addressDto.FullAddress}");
-// Output: Barbaros Blvd 123, Istanbul, Turkey 34000
+var dtoList = personList.Cast<object>().FastMapToList<PersonDto>();
+```
 
-MapperExtensions.ClearAllCustomMappings();
+---
+
+## 🔗 Fluent API
+
+### Zincirlenebilir Mapping
+
+```csharp
+var result = person.Map()
+    .Map<PersonDto>(dto => dto.FullName, p => $"{p.FirstName} {p.LastName}")
+    .Map<PersonDto>(dto => dto.Age, p => DateTime.Now.Year - p.BirthDate.Year)
+    .Map<PersonDto>(dto => dto.Status, p => p.IsActive ? "Active" : "Inactive")
+    .Ignore<PersonDto>(dto => dto.InternalId)
+    .To<PersonDto>();
+```
+
+### BeforeMap ve AfterMap Hook'ları
+
+```csharp
+var result = person.Map()
+    .BeforeMap((source, target) => 
+    {
+        Console.WriteLine($"Mapping başlıyor: {source.FirstName}");
+    })
+    .AfterMap((source, target) => 
+    {
+        Console.WriteLine($"Mapping tamamlandı: {target.FirstName}");
+    })
+    .To<PersonDto>();
+```
+
+---
+
+## 🎯 Koşullu Mapping
+
+### Koşullu Property Mapping
+
+```csharp
+var result = person.Map()
+    .MapIf<PersonDto>(dto => dto.Status, 
+        p => p.IsActive, 
+        p => "Active")
+    .MapIf<PersonDto>(dto => dto.Age, 
+        p => p.BirthDate != default(DateTime), 
+        p => DateTime.Now.Year - p.BirthDate.Year)
+    .MapIf<PersonDto>(dto => dto.FullName, 
+        p => !string.IsNullOrEmpty(p.FirstName), 
+        p => $"{p.FirstName} {p.LastName}")
+    .To<PersonDto>();
+```
+
+### Karmaşık Koşullar
+
+```csharp
+var result = person.Map()
+    .MapIf<PersonDto>(dto => dto.Category, 
+        p => p.Age >= 18, 
+        p => "Adult")
+    .MapIf<PersonDto>(dto => dto.Discount, 
+        p => p.IsActive && p.Age > 65, 
+        p => 0.15m)
+    .To<PersonDto>();
+```
+
+### Hedef Property Kontrolü ile Mapping
+
+Hedef nesnenin belirli property'lerinin null olup olmadığını kontrol ederek mapping yapabilirsiniz:
+
+```csharp
+public class Invoice
+{
+    public decimal Amount { get; set; }
+    public decimal? Vat18 { get; set; }
+    public decimal? Vat20 { get; set; }
+    public decimal? Vat8 { get; set; }
+}
+
+public class InvoiceDto
+{
+    public decimal Amount { get; set; }
+    public decimal? Vat18 { get; set; }
+    public decimal? Vat20 { get; set; }
+    public decimal? Vat8 { get; set; }
+    public decimal? VatRate { get; set; }  // Bu alan koşullu olarak doldurulacak
+}
+
+// Hedef property kontrolü ile mapping
+var result = invoice.Map()
+    .MapIf<InvoiceDto>(dto => dto.VatRate, 
+        dto => dto.Vat18,  // Eğer Vat18 null değilse
+        i => i.Vat18)
+    .MapIf<InvoiceDto>(dto => dto.VatRate, 
+        dto => dto.Vat20,  // Eğer Vat20 null değilse
+        i => i.Vat20)
+    .MapIf<InvoiceDto>(dto => dto.VatRate, 
+        dto => dto.Vat8,   // Eğer Vat8 null değilse
+        i => i.Vat8)
+    .To<InvoiceDto>();
+```
+
+### Çoklu Hedef Property Kontrolü
+
+```csharp
+public class Product
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public string? Description { get; set; }
+    public string? Category { get; set; }
+}
+
+public class ProductDto
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public string? Description { get; set; }
+    public string? Category { get; set; }
+    public string? DisplayInfo { get; set; }  // Koşullu olarak doldurulacak
+}
+
+// Hedef property'lere göre farklı mapping
+var result = product.Map()
+    .MapIf<ProductDto>(dto => dto.DisplayInfo, 
+        dto => dto.Description,  // Eğer Description null değilse
+        p => $"Açıklama: {p.Description}")
+    .MapIf<ProductDto>(dto => dto.DisplayInfo, 
+        dto => dto.Category,     // Eğer Category null değilse
+        p => $"Kategori: {p.Category}")
+    .MapIf<ProductDto>(dto => dto.DisplayInfo, 
+        dto => dto.Name,         // Eğer Name null değilse (her zaman true olur)
+        p => $"Ürün: {p.Name}")
+    .To<ProductDto>();
+```
+
+### Karmaşık Hedef Property Kontrolü
+
+```csharp
+public class User
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+}
+
+public class UserDto
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? ContactInfo { get; set; }  // Koşullu olarak doldurulacak
+}
+
+// Öncelik sırasına göre contact bilgisi
+var result = user.Map()
+    .MapIf<UserDto>(dto => dto.ContactInfo, 
+        dto => dto.Email,    // Önce email kontrol et
+        u => $"Email: {u.Email}")
+    .MapIf<UserDto>(dto => dto.ContactInfo, 
+        dto => dto.Phone,    // Sonra telefon kontrol et
+        u => $"Telefon: {u.Phone}")
+    .MapIf<UserDto>(dto => dto.ContactInfo, 
+        dto => dto.FirstName, // Son çare olarak isim
+        u => $"İletişim: {u.FirstName} {u.LastName}")
+    .To<UserDto>();
+```
+
+### If-Else If-Else Mantığı ile Mapping
+
+`MapIfElse` methodu ile if-else if-else mantığında koşullu mapping yapabilirsiniz:
+
+```csharp
+public class Invoice
+{
+    public decimal Amount { get; set; }
+    public decimal? Vat18 { get; set; }
+    public decimal? Vat20 { get; set; }
+    public decimal? Vat8 { get; set; }
+}
+
+public class InvoiceDto
+{
+    public decimal Amount { get; set; }
+    public decimal? Vat18 { get; set; }
+    public decimal? Vat20 { get; set; }
+    public decimal? Vat8 { get; set; }
+    public decimal? VatRate { get; set; }  // Bu alan koşullu olarak doldurulacak
+}
+
+// If-else if-else mantığı ile mapping
+var result = invoice.Map()
+    .MapIfElse<InvoiceDto>(dto => dto.VatRate,
+        (dto => dto.Vat18, i => i.Vat18),    // if Vat18 != null
+        (dto => dto.Vat20, i => i.Vat20),    // else if Vat20 != null
+        (dto => dto.Vat8, i => i.Vat8))      // else if Vat8 != null
+    .To<InvoiceDto>();
+```
+
+**MapIfElse Özellikleri:**
+- **Öncelik Sırası**: İlk koşul sağlanırsa, diğer koşullar kontrol edilmez
+- **If-Else If-Else Mantığı**: Geleneksel if-else if-else yapısı
+- **Performans**: Gereksiz kontroller yapılmaz
+- **Esneklik**: Birden fazla koşul parametresi alabilir
+
+**Kullanım Senaryoları:**
+- **VAT Oranı Önceliği**: Vat18 > Vat20 > Vat8
+- **İletişim Bilgisi Önceliği**: Email > Phone > Name
+- **Ürün Bilgisi Önceliği**: Description > Category > Brand
+- **İndirim Sebebi Önceliği**: DiscountCode > PremiumCustomer > Loyalty
+
+### Çoklu Koşul Önceliği
+
+```csharp
+public class Product
+{
+    public string Name { get; set; }
+    public string? Description { get; set; }
+    public string? Category { get; set; }
+    public string? Brand { get; set; }
+}
+
+public class ProductDto
+{
+    public string Name { get; set; }
+    public string? Description { get; set; }
+    public string? Category { get; set; }
+    public string? Brand { get; set; }
+    public string? DisplayInfo { get; set; }  // Koşullu olarak doldurulacak
+}
+
+// Öncelik sırası: Description > Category > Brand > Name
+var result = product.Map()
+    .MapIfElse<ProductDto>(dto => dto.DisplayInfo,
+        (dto => dto.Description, p => $"Açıklama: {p.Description}"),  // if Description != null
+        (dto => dto.Category, p => $"Kategori: {p.Category}"),       // else if Category != null
+        (dto => dto.Brand, p => $"Marka: {p.Brand}"),                // else if Brand != null
+        (dto => dto.Name, p => $"Ürün: {p.Name}"))                   // else if Name != null
+    .To<ProductDto>();
+```
+
+### Karmaşık İş Mantığı
+
+```csharp
+public class Order
+{
+    public decimal TotalAmount { get; set; }
+    public string? DiscountCode { get; set; }
+    public bool IsPremiumCustomer { get; set; }
+    public int OrderCount { get; set; }
+}
+
+public class OrderDto
+{
+    public decimal TotalAmount { get; set; }
+    public string? DiscountCode { get; set; }
+    public bool IsPremiumCustomer { get; set; }
+    public int OrderCount { get; set; }
+    public string? DiscountReason { get; set; }  // Koşullu olarak doldurulacak
+}
+
+// İş mantığına göre indirim sebebi
+var result = order.Map()
+    .MapIfElse<OrderDto>(dto => dto.DiscountReason,
+        (dto => dto.DiscountCode, o => $"Kod: {o.DiscountCode}"),           // if DiscountCode != null
+        (dto => dto.IsPremiumCustomer, o => "Premium müşteri indirimi"),     // else if IsPremiumCustomer
+        (dto => dto.OrderCount, o => $"Sadık müşteri ({o.OrderCount} sipariş)")) // else if OrderCount > 0
+    .To<OrderDto>();
+```
+
+---
+
+## 🛠️ Custom Mapping
+
+### Özel Property Mapping
+
+```csharp
+// Setup'da bir kez tanımla
+MapperExtensions.AddCustomMapping<Person, PersonDto>(
+    "FullName",
+    person => $"{person.FirstName} {person.LastName}"
+);
+
+// Kullan
+var dto = person.FastMapTo<PersonDto>(); // FullName otomatik doldurulur
+```
+
+### Karmaşık Custom Mapping
+
+```csharp
+MapperExtensions.AddCustomMapping<Person, PersonDto>(
+    "ProfileSummary",
+    person => 
+    {
+        var age = DateTime.Now.Year - person.BirthDate.Year;
+        var status = person.IsActive ? "Active" : "Inactive";
+        return $"{person.FirstName} ({age} yaşında, {status})";
+    }
+);
 ```
 
 ---
 
 ## 🔄 Type Converter
 
-### Custom Type Converter
+### Temel Type Converter
 
 ```csharp
-// Add type converters
-MapperExtensions.AddTypeConverter<DateTime, string>(
-    date => date.ToString("dd.MM.yyyy")
-);
+// String'den int'e dönüşüm
+MapperExtensions.AddTypeConverter<string, int>(int.Parse);
 
-MapperExtensions.AddTypeConverter<bool, string>(
-    active => active ? "Yes" : "No"
-);
+// DateTime'dan string'e dönüşüm
+MapperExtensions.AddTypeConverter<DateTime, string>(dt => dt.ToString("dd.MM.yyyy"));
 
-public class ReportDto
+// decimal'dan string'e para birimi formatı
+MapperExtensions.AddTypeConverter<decimal, string>(price => $"₺{price:F2}");
+```
+
+### Karmaşık Type Converter
+
+```csharp
+// Enum'dan string'e dönüşüm
+MapperExtensions.AddTypeConverter<UserStatus, string>(status => 
+    status switch
+    {
+        UserStatus.Active => "Aktif",
+        UserStatus.Inactive => "Pasif",
+        UserStatus.Suspended => "Askıya Alınmış",
+        _ => "Bilinmiyor"
+    });
+
+// String'den enum'a dönüşüm
+MapperExtensions.AddTypeConverter<string, UserStatus>(str => 
+    Enum.Parse<UserStatus>(str, true));
+```
+
+---
+
+## ⚡ Asenkron Mapping
+
+### Basit Async Mapping
+
+```csharp
+var personList = GetLargePersonList(); // 1000+ kayıt
+var results = await AsyncMapper.MapAsync<Person, PersonDto>(personList);
+
+Console.WriteLine($"Toplam {results.Count} kayıt işlendi");
+```
+
+### Progress Reporting ile
+
+```csharp
+var progress = new Progress<AsyncMapper.MappingProgress>(p =>
+{
+    Console.WriteLine($"İlerleme: %{p.Percentage:F1} ({p.ProcessedCount}/{p.TotalCount})");
+});
+
+var results = await AsyncMapper.MapAsync<Person, PersonDto>(personList, progress);
+```
+
+### Concurrency Control
+
+```csharp
+// Maksimum 4 paralel işlem
+var results = await AsyncMapper.MapAsync<Person, PersonDto>(personList, maxConcurrency: 4);
+```
+
+---
+
+## 🔍 Diff Mapping
+
+### Basit Fark Bulma
+
+```csharp
+var original = new Person { Id = 1, FirstName = "John", LastName = "Doe" };
+var updated = new Person { Id = 1, FirstName = "Jane", LastName = "Smith" };
+
+var diff = DiffMapper.FindDifferences(original, updated);
+
+if (diff.HasDifferences)
+{
+    Console.WriteLine($"Fark sayısı: {diff.Differences.Count}");
+    Console.WriteLine($"Benzerlik: %{diff.SimilarityPercentage}");
+    
+    foreach (var difference in diff.Differences)
+    {
+        Console.WriteLine($"- {difference.PropertyName}: {difference.OldValue} → {difference.NewValue}");
+    }
+}
+```
+
+### Karmaşık Nesne Farkları
+
+```csharp
+public class ComplexPerson
 {
     public int Id { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string BirthDate { get; set; } // DateTime -> string
-    public string IsActive { get; set; }  // bool -> string
+    public string Name { get; set; }
+    public Address Address { get; set; }
+    public List<string> Hobbies { get; set; }
 }
 
-var user = new User
+public class Address
 {
-    Id = 1,
-    FirstName = "Miray",
-    LastName = "Sevim",
-    BirthDate = new DateTime(1985, 3, 10),
-    IsActive = true
+    public string Street { get; set; }
+    public string City { get; set; }
+}
+
+var original = new ComplexPerson 
+{ 
+    Id = 1, 
+    Name = "John",
+    Address = new Address { Street = "Main St", City = "NYC" },
+    Hobbies = new List<string> { "Reading", "Swimming" }
 };
 
-var report = user.FastMapTo<ReportDto>();
+var updated = new ComplexPerson 
+{ 
+    Id = 1, 
+    Name = "John",
+    Address = new Address { Street = "Oak St", City = "LA" },
+    Hobbies = new List<string> { "Reading", "Gaming" }
+};
 
-Console.WriteLine($"Birth Date: {report.BirthDate}"); // 10.03.1985
-Console.WriteLine($"Active: {report.IsActive}"); // Yes
+var diff = DiffMapper.FindDifferences(original, updated);
 ```
 
 ---
 
-## 📝 Existing Object Mapping
+## 💾 Snapshot & Restore
 
-### Mapping to Existing Object
+### Basit Snapshot
 
 ```csharp
-// Update an existing object
-var existingDto = new UserDto
-{
-    Id = 999,
-    FullName = "Old Name", // This won't change
-    Status = "Old Status"   // This won't change either
-};
+// Snapshot oluştur
+var snapshot = AsyncMapper.CreateSnapshot(person);
 
-var newUser = new User
-{
-    Id = 1,
-    FirstName = "Mennan",
-    LastName = "Sevim",
-    BirthDate = new DateTime(1995, 1, 1),
-    IsActive = false
-};
+// Snapshot bilgilerini görüntüle
+Console.WriteLine($"Snapshot ID: {snapshot.Id}");
+Console.WriteLine($"Oluşturulma: {snapshot.CreatedAt}");
+Console.WriteLine($"Boyut: {snapshot.SerializedData.Length} bytes");
 
-// Update existing object
-newUser.FastMapTo(existingDto);
+// Snapshot'tan geri yükle
+var restored = AsyncMapper.RestoreFromSnapshot<Person>(snapshot.Id);
+```
 
-Console.WriteLine($"Updated ID: {existingDto.Id}"); // 1 (updated)
-Console.WriteLine($"Updated FirstName: {existingDto.FirstName}"); // Mennan
-Console.WriteLine($"Updated LastName: {existingDto.LastName}"); // Sevim  
-Console.WriteLine($"FullName: {existingDto.FullName}"); // Old Name (unchanged)
-Console.WriteLine($"Status: {existingDto.Status}"); // Old Status (unchanged)
+### Deep Copy Snapshot
+
+```csharp
+// Deep copy snapshot oluştur
+var deepSnapshot = AsyncMapper.CreateDeepCopySnapshot(person);
+
+// Deep copy'den geri yükle
+var deepRestored = AsyncMapper.RestoreFromSnapshot<Person>(deepSnapshot.Id);
+```
+
+### Snapshot Yönetimi
+
+```csharp
+// Tüm snapshot'ları listele
+var snapshots = AsyncMapper.GetAllSnapshots();
+
+// Belirli bir snapshot'ı sil
+AsyncMapper.DeleteSnapshot(snapshotId);
+
+// Eski snapshot'ları temizle (7 günden eski)
+AsyncMapper.CleanupOldSnapshots(TimeSpan.FromDays(7));
 ```
 
 ---
 
-## ⚡ Performance Optimizations
+## ✅ Mapping Validator
 
-### Cache Efficiency Test
+### Basit Validation
 
 ```csharp
-using System.Diagnostics;
+var result = MappingValidator.ValidateMapping<Person, PersonDto>();
 
-var user = new User { Id = 1, FirstName = "İlhan", LastName = "Mansız" };
+if (result.IsValid)
+{
+    Console.WriteLine("Mapping geçerli!");
+}
+else
+{
+    Console.WriteLine($"Mapping hataları: {result.Errors.Count}");
+    foreach (var error in result.Errors)
+    {
+        Console.WriteLine($"- {error.Message}");
+    }
+}
+```
 
-// First mapping (cold start)
-var sw1 = Stopwatch.StartNew();
-var result1 = user.FastMapTo<UserDto>();
-sw1.Stop();
+### Detaylı Validation Raporu
 
-// Second mapping (cached)
-var sw2 = Stopwatch.StartNew();
-var result2 = user.FastMapTo<UserDto>();
-sw2.Stop();
+```csharp
+var result = MappingValidator.ValidateMapping<Person, PersonDto>();
 
-// Multiple cached mappings
-var sw3 = Stopwatch.StartNew();
+Console.WriteLine($"Geçerli mi: {result.IsValid}");
+Console.WriteLine($"Hata sayısı: {result.Errors.Count}");
+Console.WriteLine($"Uyarı sayısı: {result.Warnings.Count}");
+Console.WriteLine($"Property sayısı: {result.PropertyCount}");
+
+foreach (var property in result.Properties)
+{
+    Console.WriteLine($"- {property.Name}: {property.SourceType} → {property.TargetType}");
+}
+```
+
+---
+
+## 🔄 Partial Merge
+
+### Basit Merge
+
+```csharp
+var target = new Person { Id = 1, FirstName = "John" };
+var source = new Person { Id = 1, FirstName = "Jane", LastName = "Smith" };
+
+// Sadece belirli alanları güncelle
+var result = MergeMapper.PartialMerge(target, source, "FirstName", "LastName");
+
+Console.WriteLine($"Güncellenen alan sayısı: {result.UpdatedProperties.Count}");
+```
+
+### Koşullu Merge
+
+```csharp
+var result = MergeMapper.ConditionalMerge(target, source, 
+    (sourceValue, targetValue) => sourceValue != null);
+
+// Sadece null olmayan değerlerle güncelle
+```
+
+### Deep Merge
+
+```csharp
+var result = MergeMapper.DeepMerge(target, source, maxDepth: 3);
+
+// İç içe nesneleri de merge et
+```
+
+---
+
+## 📊 Diagnostic & Profiling
+
+### Performance Profili
+
+```csharp
+// Profil başlat
+var profile = DiagnosticMapper.StartPerformanceProfile("UserMapping");
+
+// Mapping işlemleri...
 for (int i = 0; i < 1000; i++)
 {
-    var temp = user.FastMapTo<UserDto>();
+    var dto = person.FastMapTo<PersonDto>();
 }
-sw3.Stop();
 
-Console.WriteLine($"First mapping: {sw1.ElapsedMilliseconds} ms");
-Console.WriteLine($"Second mapping: {sw2.ElapsedMilliseconds} ms");
-Console.WriteLine($"1000 cached mappings: {sw3.ElapsedMilliseconds} ms");
-Console.WriteLine($"Average per cached mapping: {sw3.ElapsedMilliseconds / 1000.0:F4} ms");
+// Profil bitir
+var result = DiagnosticMapper.EndPerformanceProfile("UserMapping");
+
+Console.WriteLine($"Toplam mapping: {result.TotalMappings}");
+Console.WriteLine($"Ortalama süre: {result.AverageMappingTime}");
+Console.WriteLine($"Toplam süre: {result.TotalTime}");
 ```
 
-### Bulk Performance Test
+### Diagnostic Raporu
 
 ```csharp
-// 10,000 objects mapping performance
-var largeUserList = new List<User>();
-for (int i = 0; i < 10000; i++)
+var report = DiagnosticMapper.GenerateDiagnosticReport();
+
+Console.WriteLine($"Başarı oranı: %{report.Summary.SuccessRate:P1}");
+Console.WriteLine($"Toplam çağrı: {report.Summary.TotalCalls}");
+Console.WriteLine($"Ortalama süre: {report.Summary.AverageTime}");
+Console.WriteLine($"Hata sayısı: {report.Summary.ErrorCount}");
+
+// En çok kullanılan mapping'ler
+foreach (var mapping in report.TopMappings)
 {
-    var firstName = i % 3 == 0 ? "Mennan" : i % 3 == 1 ? "Miray" : "İlhan";
-    var lastName = i % 3 == 0 ? "Sevim" : i % 3 == 1 ? "Sevim" : "Mansız";
-    
-    largeUserList.Add(new User
-    {
-        Id = i,
-        FirstName = firstName,
-        LastName = lastName,
-        BirthDate = DateTime.Now.AddDays(-i),
-        IsActive = i % 2 == 0
-    });
+    Console.WriteLine($"- {mapping.SourceType} → {mapping.TargetType}: {mapping.CallCount} çağrı");
 }
-
-var stopwatch = Stopwatch.StartNew();
-var mappedUsers = largeUserList.FastMapToList<UserDto>();
-stopwatch.Stop();
-
-Console.WriteLine($"10,000 objects mapped in {stopwatch.ElapsedMilliseconds} ms");
-Console.WriteLine($"Average per object: {stopwatch.ElapsedMilliseconds / 10000.0:F4} ms");
-Console.WriteLine($"Objects per second: {10000.0 / (stopwatch.ElapsedMilliseconds / 1000.0):F0}");
 ```
 
 ---
 
-## 🧹 Cache Management
+## 🌍 Gerçek Dünya Senaryoları
 
-### Cache Operations
-
-```csharp
-// Check cache status
-Console.WriteLine("=== Cache Management ===");
-
-// Perform some mappings
-var user = new User { Id = 1, FirstName = "Mennan", LastName = "Sevim" };
-var dto1 = user.FastMapTo<UserDto>();
-var dtoList = new List<User> { user }.FastMapToList<UserDto>();
-
-// Add custom mapping
-MapperExtensions.AddCustomMapping<User, UserDto>(
-    "FirstName", "FullName", 
-    source => $"{((User)source).FirstName} Custom"
-);
-
-// Map with custom mapping
-var customDto = user.FastMapTo<UserDto>();
-
-Console.WriteLine("Caches populated with mappings and custom rules");
-
-// Clear only custom mappings
-MapperExtensions.ClearAllCustomMappings();
-Console.WriteLine("Custom mappings cleared");
-
-// Test - custom mapping no longer exists
-var afterClearDto = user.FastMapTo<UserDto>();
-Console.WriteLine($"After clear FullName: {afterClearDto.FullName ?? "null"}"); // null
-
-// Clear all caches
-MapperExtensions.ClearAllCaches();
-Console.WriteLine("All caches cleared - next mapping will be cold start");
-
-// Cold start test
-var coldStartDto = user.FastMapTo<UserDto>();
-Console.WriteLine("Cold start mapping completed");
-```
-
----
-
-## 🌍 Real-World Examples
-
-### E-Commerce Scenario
+### E-Ticaret Senaryosu
 
 ```csharp
-// E-commerce entities
 public class Product
 {
     public int Id { get; set; }
@@ -406,55 +681,24 @@ public class ProductListDto
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public string Price { get; set; }        // decimal -> string with currency
-    public string Stock { get; set; }        // int -> string with units
-    public string Status { get; set; }       // bool -> string
-    public string CreatedDate { get; set; }  // DateTime -> string
+    public string Price { get; set; }        // decimal → string
+    public string Stock { get; set; }        // int → string
+    public string Status { get; set; }       // bool → string
+    public string CreatedDate { get; set; }  // DateTime → string
 }
 
-// Add type converters
-MapperExtensions.AddTypeConverter<decimal, string>(
-    price => $"${price:F2}" // Currency format
-);
+// Type converter'ları tanımla
+MapperExtensions.AddTypeConverter<decimal, string>(price => $"₺{price:F2}");
+MapperExtensions.AddTypeConverter<int, string>(stock => $"{stock} adet");
+MapperExtensions.AddTypeConverter<bool, string>(active => active ? "Stokta" : "Stokta Yok");
+MapperExtensions.AddTypeConverter<DateTime, string>(date => date.ToString("dd.MM.yyyy HH:mm"));
 
-MapperExtensions.AddTypeConverter<int, string>(
-    stock => $"{stock} pcs"
-);
-
-MapperExtensions.AddTypeConverter<bool, string>(
-    active => active ? "In Stock" : "Out of Stock"
-);
-
-MapperExtensions.AddTypeConverter<DateTime, string>(
-    date => date.ToString("dd.MM.yyyy HH:mm")
-);
-
-// Test data
-var products = new List<Product>
-{
-    new Product { Id = 1, Name = "iPhone 15", Price = 1200m, Stock = 10, IsActive = true, CreatedDate = DateTime.Now.AddDays(-30) },
-    new Product { Id = 2, Name = "Samsung Galaxy", Price = 800m, Stock = 0, IsActive = false, CreatedDate = DateTime.Now.AddDays(-15) },
-    new Product { Id = 3, Name = "Xiaomi Note", Price = 350m, Stock = 25, IsActive = true, CreatedDate = DateTime.Now.AddDays(-5) }
-};
-
-// ULTRA-FAST e-commerce mapping!
-var productDtos = products.FastMapToList<ProductListDto>();
-
-Console.WriteLine("=== E-Commerce Product Catalog ===");
-foreach (var product in productDtos)
-{
-    Console.WriteLine($"🛍️  {product.Name}");
-    Console.WriteLine($"   💰 Price: {product.Price}");
-    Console.WriteLine($"   📦 Stock: {product.Stock}");
-    Console.WriteLine($"   ✅ Status: {product.Status}");
-    Console.WriteLine($"   📅 Created: {product.CreatedDate}");
-    Console.WriteLine();
-}
-
-MapperExtensions.ClearAllCaches();
+// Kullan
+var products = GetProductList();
+var productDtos = products.Cast<object>().FastMapToList<ProductListDto>();
 ```
 
-### Blog/CMS Scenario
+### Blog/CMS Senaryosu
 
 ```csharp
 public class BlogPost
@@ -472,217 +716,115 @@ public class BlogPostSummaryDto
 {
     public int Id { get; set; }
     public string Title { get; set; }
-    public string Summary { get; set; }      // Custom: First 100 chars of content
+    public string Summary { get; set; }      // Özel: İçeriğin ilk 100 karakteri
     public string AuthorName { get; set; }
     public string PublishDate { get; set; }
-    public string Status { get; set; }       // Custom: Published status + view count
+    public string Status { get; set; }       // Özel: Yayın durumu + görüntüleme sayısı
 }
 
-// Blog-specific custom mappings
+// Custom mapping'ler
 MapperExtensions.AddCustomMapping<BlogPost, BlogPostSummaryDto>(
     "Content", "Summary",
-    source => 
-    {
-        var post = (BlogPost)source;
-        return post.Content.Length > 100 
-            ? post.Content.Substring(0, 100) + "..."
-            : post.Content;
-    }
+    post => post.Content.Length > 100 ? post.Content.Substring(0, 100) + "..." : post.Content
 );
 
 MapperExtensions.AddCustomMapping<BlogPost, BlogPostSummaryDto>(
     "IsPublished", "Status",
-    source => 
+    post => 
     {
-        var post = (BlogPost)source;
-        var status = post.IsPublished ? "Published" : "Draft";
-        return $"{status} ({post.ViewCount:N0} views)";
+        var status = post.IsPublished ? "Yayında" : "Taslak";
+        return $"{status} ({post.ViewCount:N0} görüntüleme)";
     }
 );
 
-MapperExtensions.AddTypeConverter<DateTime, string>(
-    date => date.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("en-US"))
-);
+// Kullan
+var blogPosts = GetBlogPosts();
+var summaries = blogPosts.Cast<object>().FastMapToList<BlogPostSummaryDto>();
+```
 
-// Blog test data
-var blogPosts = new List<BlogPost>
+### API Response Mapping
+
+```csharp
+public class ApiResponse<T>
 {
-    new BlogPost 
-    { 
-        Id = 1, 
-        Title = "Ultra Performance with FastMapper", 
-        Content = "FastMapper is an ultra-performant library developed for object mapping in .NET applications. It works 2-3 times faster than AutoMapper and provides maximum speed with minimum memory allocation thanks to its expression tree-based approach.",
-        AuthorName = "Mennan Sevim",
-        PublishDate = DateTime.Now.AddDays(-7),
-        IsPublished = true,
-        ViewCount = 1250
-    },
-    new BlogPost 
-    { 
-        Id = 2, 
-        Title = "C# Performance Best Practices", 
-        Content = "In this article, we will examine the best practices for performance optimization in C# applications...",
-        AuthorName = "Miray Sevim",
-        PublishDate = DateTime.Now.AddDays(-3),
-        IsPublished = false,
-        ViewCount = 0
-    }
+    public bool Success { get; set; }
+    public string Message { get; set; }
+    public T Data { get; set; }
+    public DateTime Timestamp { get; set; }
+}
+
+public class ApiResponseDto<T>
+{
+    public bool Success { get; set; }
+    public string Message { get; set; }
+    public T Data { get; set; }
+    public string Timestamp { get; set; }  // DateTime → string
+}
+
+// Type converter
+MapperExtensions.AddTypeConverter<DateTime, string>(dt => dt.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+
+// Kullan
+var response = new ApiResponse<Person> 
+{ 
+    Success = true, 
+    Message = "OK", 
+    Data = person,
+    Timestamp = DateTime.UtcNow 
 };
 
-var blogSummaries = blogPosts.FastMapToList<BlogPostSummaryDto>();
-
-Console.WriteLine("=== Blog Post Summaries ===");
-foreach (var summary in blogSummaries)
-{
-    Console.WriteLine($"📝 {summary.Title}");
-    Console.WriteLine($"   👤 Author: {summary.AuthorName}");
-    Console.WriteLine($"   📅 Date: {summary.PublishDate}");
-    Console.WriteLine($"   📊 Status: {summary.Status}");
-    Console.WriteLine($"   📄 Summary: {summary.Summary}");
-    Console.WriteLine();
-}
-
-MapperExtensions.ClearAllCaches();
+var responseDto = response.FastMapTo<ApiResponseDto<PersonDto>>();
 ```
 
 ---
 
-## 🎯 Performance Comparison
+## 🎯 En İyi Uygulamalar
 
-### Manual vs FastMapper Benchmark
-
-```csharp
-using System.Diagnostics;
-
-var users = new List<User>();
-for (int i = 0; i < 50000; i++)
-{
-    var firstName = i % 3 == 0 ? "Mennan" : i % 3 == 1 ? "Miray" : "İlhan";
-    var lastName = i % 3 == 0 ? "Sevim" : i % 3 == 1 ? "Sevim" : "Mansız";
-    
-    users.Add(new User
-    {
-        Id = i,
-        FirstName = firstName,
-        LastName = lastName,
-        BirthDate = DateTime.Now.AddDays(-i),
-        IsActive = i % 2 == 0
-    });
-}
-
-Console.WriteLine("=== Performance Comparison: 50,000 Objects ===");
-
-// Manual mapping
-var manualSw = Stopwatch.StartNew();
-var manualResults = new List<UserDto>();
-foreach (var user in users)
-{
-    manualResults.Add(new UserDto
-    {
-        Id = user.Id,
-        FirstName = user.FirstName,
-        LastName = user.LastName,
-        Age = DateTime.Now.Year - user.BirthDate.Year,
-        IsActive = user.IsActive
-    });
-}
-manualSw.Stop();
-
-// FastMapper (with warmup)
-users.Take(10).ToList().FastMapToList<UserDto>(); // Warmup
-
-var fastMapperSw = Stopwatch.StartNew();
-var fastMapperResults = users.FastMapToList<UserDto>();
-fastMapperSw.Stop();
-
-Console.WriteLine($"🔧 Manual Mapping: {manualSw.ElapsedMilliseconds} ms");
-Console.WriteLine($"🚀 FastMapper: {fastMapperSw.ElapsedMilliseconds} ms");
-Console.WriteLine($"⚡ Performance Gain: {(double)manualSw.ElapsedMilliseconds / fastMapperSw.ElapsedMilliseconds:F1}x");
-Console.WriteLine($"📊 Objects/sec Manual: {50000.0 / (manualSw.ElapsedMilliseconds / 1000.0):F0}");
-Console.WriteLine($"📊 Objects/sec FastMapper: {50000.0 / (fastMapperSw.ElapsedMilliseconds / 1000.0):F0}");
-```
-
----
-
-## 💡 Best Practices
-
-### 1. Cache Strategy for Warmup
+### 1. Performance Optimizasyonu
 
 ```csharp
-// Warm up cache at application startup
+// Uygulama başlangıcında cache'leri ısıt
 public static class FastMapperInitializer
 {
     public static void WarmUpCaches()
     {
-        // Warm up frequently used mappings
-        var dummyUser = new User();
-        var dummyAddress = new Address();
+        var dummyPerson = new Person();
+        var dummyProduct = new Product();
         
-        _ = dummyUser.FastMapTo<UserDto>();
-        _ = new List<User> { dummyUser }.FastMapToList<UserDto>();
-        _ = dummyAddress.FastMapTo<AddressDto>();
+        _ = dummyPerson.FastMapTo<PersonDto>();
+        _ = dummyProduct.FastMapTo<ProductDto>();
         
-        Console.WriteLine("FastMapper caches warmed up!");
+        Console.WriteLine("FastMapper cache'leri ısıtıldı!");
     }
 }
-
-// Call in Program.cs or Startup
-FastMapperInitializer.WarmUpCaches();
 ```
 
-### 2. Custom Mapping Management
+### 2. Error Handling
 
 ```csharp
-public static class MappingConfiguration
+try
 {
-    public static void ConfigureCustomMappings()
-    {
-        // User mappings
-        MapperExtensions.AddCustomMapping<User, UserDto>(
-            "FirstName", "FullName", 
-            source => $"{((User)source).FirstName} {((User)source).LastName}"
-        );
-        
-        // Product mappings
-        MapperExtensions.AddTypeConverter<decimal, string>(
-            price => $"${price:F2}"
-        );
-        
-        Console.WriteLine("Custom mappings configured!");
-    }
-    
-    public static void ClearConfiguration()
-    {
-        MapperExtensions.ClearAllCustomMappings();
-        MapperExtensions.ClearAllCaches();
-        
-        Console.WriteLine("Mapping configuration cleared!");
-    }
+    var result = person.FastMapTo<PersonDto>();
+}
+catch (MappingException ex)
+{
+    Console.WriteLine($"Mapping hatası: {ex.Message}");
+    // Fallback mapping veya hata işleme
 }
 ```
 
----
+### 3. Validation ile Güvenli Mapping
 
-## 🏆 Conclusion
+```csharp
+// Mapping'i önceden doğrula
+var validation = MappingValidator.ValidateMapping<Person, PersonDto>();
+if (!validation.IsValid)
+{
+    throw new InvalidOperationException("Mapping konfigürasyonu geçersiz");
+}
 
-Experience **2-2.5x faster** object mapping than AutoMapper with FastMapper!
+// Güvenli mapping yap
+var result = person.FastMapTo<PersonDto>();
+```
 
-### ✅ **Key Features:**
-- 🚀 **Ultra-Performance**: Expression tree based mapping
-- 💾 **Zero Allocation**: Optimal memory usage  
-- 🔄 **Custom Mappings**: Flexible property transformations
-- 📦 **Collection Support**: High-speed list mapping
-- 🎯 **Type Converters**: Automatic type transformations
-- 💨 **Caching**: Compiled delegates for maximum speed
-
-### 📈 **Performance Highlights:**
-- **Simple Mapping**: ~0.001-0.01ms per operation
-- **Bulk Mapping**: 10,000+ objects per second
-- **Memory Efficient**: Minimal GC pressure
-- **Cache Optimized**: Cold start once, blazing speed forever
-
-**FastMapper = Speed + Simplicity + Power** 🔥
-
----
-
-*All examples in this document have been tested and are working. You can safely use all capabilities of FastMapper in your projects!* 
+Bu örnekler FastMapper'ın tüm özelliklerini kapsamlı bir şekilde gösterir. İhtiyacınıza göre bu örnekleri uyarlayabilir ve geliştirebilirsiniz. 
