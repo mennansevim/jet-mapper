@@ -428,9 +428,7 @@ namespace FastMapper
             if (source == null || target == null) return;
             var sourceType = source.GetType();
             var targetType = typeof(TTarget);
-            var key = GetTypeKey(sourceType, targetType) | unchecked((long)0x8000000000000000);
-            var mapper = (Action<object, TTarget>)_typedMappers.GetOrAdd(key, _ => CreateUltraFastInPlaceMapper<TTarget>(sourceType, targetType));
-
+     
             // Özelleştirilmiş alan güncelleme
             var sourceProps = sourceType.GetProperties();
             var targetProps = targetType.GetProperties();

@@ -86,8 +86,7 @@ namespace FastMapper
             {
                 config ??= new MergeConfiguration();
 
-                var targetType = typeof(T);
-                var sourceType = source.GetType();
+                var targetType = typeof(T); 
                 var propertyInfos = GetPropertyMergeInfo(targetType);
 
                 foreach (var propInfo in propertyInfos)

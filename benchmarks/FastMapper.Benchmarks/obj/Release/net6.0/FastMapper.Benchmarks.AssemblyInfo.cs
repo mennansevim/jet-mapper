@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FastMapper.Benchmarks")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9ae43a7bebcf6a96314e555b5df53696ea88a37c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+151d3faa950a59cd59a3c3e0464c375cc80dcdbe")]
 [assembly: System.Reflection.AssemblyProductAttribute("FastMapper.Benchmarks")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FastMapper.Benchmarks")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

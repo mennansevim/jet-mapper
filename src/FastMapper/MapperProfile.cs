@@ -128,8 +128,7 @@ namespace FastMapper
             var sourceType = typeof(TSource);
             var targetType = typeof(TTarget);
             
-            // Get ultra-fast type metadata
-            var sourceInfo = GetOrCreateUltraTypeInfo(sourceType);
+            // Get ultra-fast type metadata 
             var targetInfo = GetOrCreateUltraTypeInfo(targetType);
             var sourceProps = GetOrCreateUltraPropertyInfo(sourceType);
             var targetProps = GetOrCreateUltraPropertyInfo(targetType);
