@@ -244,7 +244,7 @@ namespace FastMapper
         /// <summary>
         /// Konfigürasyonu başka bir mapper'a uygula
         /// </summary>
-        private void ApplyConfiguration(FluentMapper<TSource> other)
+        public void ApplyConfiguration(FluentMapper<TSource> other)
         {
             foreach (var mapping in _customMappings)
             {
@@ -270,47 +270,101 @@ namespace FastMapper
         /// </summary>
         private void ApplyCustomMappings(object target)
         {
-            var targetType = target.GetType();
-
             foreach (var mapping in _customMappings)
             {
-                var propertyName = mapping.Key;
+                var propertyPath = mapping.Key;
                 var mappingFunc = mapping.Value;
 
                 // Koşullu mapping kontrolü
-                if (_conditionalMappings.TryGetValue(propertyName, out var condition))
+                if (_conditionalMappings.TryGetValue(propertyPath, out var condition))
                 {
                     if (!condition(_source))
                         continue;
                 }
 
-                // Property'yi bul ve değeri ata
-                var property = targetType.GetProperty(propertyName);
-                if (property != null && property.CanWrite)
-                {
-                    var value = mappingFunc(_source);
-                    property.SetValue(target, value);
-                }
+                // Nested property path'i işle
+                var value = mappingFunc(_source);
+                SetNestedPropertyValue(target, propertyPath, value);
             }
         }
 
         /// <summary>
-        /// Expression'dan property adını çıkar
+        /// Nested property değerini ata
+        /// </summary>
+        private void SetNestedPropertyValue(object target, string propertyPath, object value)
+        {
+            var parts = propertyPath.Split('.');
+            var current = target;
+
+            // Son property'ye kadar ilerle
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                var property = current.GetType().GetProperty(parts[i]);
+                if (property == null || !property.CanRead) return;
+
+                var propertyValue = property.GetValue(current);
+                if (propertyValue == null)
+                {
+                    // Null ise yeni instance oluştur
+                    if (property.CanWrite)
+                    {
+                        propertyValue = Activator.CreateInstance(property.PropertyType);
+                        property.SetValue(current, propertyValue);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+                current = propertyValue;
+            }
+
+            // Son property'ye değeri ata
+            var finalProperty = current.GetType().GetProperty(parts[parts.Length - 1]);
+            if (finalProperty != null && finalProperty.CanWrite)
+            {
+                finalProperty.SetValue(current, value);
+            }
+        }
+
+        /// <summary>
+        /// Expression'dan property path'ini çıkar
         /// </summary>
         private string GetPropertyName<T>(Expression<Func<T, object>> expression)
         {
-            if (expression.Body is MemberExpression memberExpression)
+            return GetPropertyPath(expression.Body);
+        }
+
+        /// <summary>
+        /// Expression'dan property path'ini çıkar
+        /// </summary>
+        private string GetPropertyPath(Expression expression)
+        {
+            if (expression is MemberExpression memberExpression)
             {
-                return memberExpression.Member.Name;
+                var parentPath = GetPropertyPath(memberExpression.Expression);
+                return string.IsNullOrEmpty(parentPath) 
+                    ? memberExpression.Member.Name 
+                    : $"{parentPath}.{memberExpression.Member.Name}";
             }
 
-            if (expression.Body is UnaryExpression unaryExpression && 
-                unaryExpression.Operand is MemberExpression operand)
+            if (expression is UnaryExpression unaryExpression)
             {
-                return operand.Member.Name;
+                return GetPropertyPath(unaryExpression.Operand);
             }
 
-            throw new ArgumentException("Geçersiz property expression");
+            if (expression is ParameterExpression)
+            {
+                return string.Empty;
+            }
+
+            if (expression is ConstantExpression)
+            {
+                return string.Empty;
+            }
+
+            throw new ArgumentException($"Geçersiz property expression: {expression.GetType().Name}");
         }
     }
 
@@ -362,6 +416,29 @@ namespace FastMapper
             }
             
             throw new InvalidOperationException("Kaynak koleksiyon boş olamaz");
+        }
+
+        /// <summary>
+        /// Asenkron liste mapping extension method
+        /// </summary>
+        public static async Task<List<TTarget>> ToListAsync<TSource, TTarget>(this FluentMapper<TSource> fluentMapper, IEnumerable<TSource> sources) 
+            where TTarget : new()
+        {
+            var results = new List<TTarget>();
+            var tasks = new List<Task<TTarget>>();
+
+            foreach (var source in sources)
+            {
+                var newFluentMapper = new FluentMapper<TSource>(source);
+                // Aynı konfigürasyonu uygula
+                fluentMapper.ApplyConfiguration(newFluentMapper);
+                tasks.Add(Task.Run(() => newFluentMapper.To<TTarget>()));
+            }
+
+            var mappedResults = await Task.WhenAll(tasks);
+            results.AddRange(mappedResults);
+
+            return results;
         }
     }
 } 

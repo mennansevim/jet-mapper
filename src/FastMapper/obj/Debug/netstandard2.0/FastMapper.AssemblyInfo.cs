@@ -17,7 +17,7 @@ using System.Reflection;
     "ith expression tree-based compilation, zero allocation strategies, and aggressiv" +
     "e caching. Zero configuration required."))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("2.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.0+9ae43a7bebcf6a96314e555b5df53696ea88a37c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.0+201093212dfcc3d415530c8e09a209d4adf649f1")]
 [assembly: System.Reflection.AssemblyProductAttribute("FastMapper")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FastMapper")]
 [assembly: System.Reflection.AssemblyVersionAttribute("2.0.0.0")]

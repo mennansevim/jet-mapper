@@ -135,10 +135,12 @@ namespace FastMapper
                 }
 
                 // Özet bilgileri hesapla
-                CalculateSummary(result);
                 result.HasDifferences = result.Differences.Count > 0;
-                result.SimilarityPercentage = (double)result.SimilarProperties / result.TotalProperties * 100;
+                result.SimilarityPercentage = result.TotalProperties > 0 ? (double)result.SimilarProperties / result.TotalProperties * 100 : 0;
                 result.DiffTime = DateTime.UtcNow - startTime;
+                
+                // Summary hesapla
+                CalculateSummary(result);
             }
             catch (Exception ex)
             {
@@ -150,6 +152,9 @@ namespace FastMapper
                     Severity = DiffSeverity.Critical
                 });
                 result.HasDifferences = true;
+                
+                // Exception durumunda da Summary hesapla
+                CalculateSummary(result);
             }
 
             return result;
@@ -166,9 +171,18 @@ namespace FastMapper
             }
 
             // Generic method'u çağır
-            var method = typeof(DiffMapper).GetMethod(nameof(FindDifferences), new[] { typeof(object), typeof(object) });
-            var genericMethod = method.MakeGenericMethod(source.GetType());
-            return (DiffResult)genericMethod.Invoke(null, new[] { source, target });
+            var methods = typeof(DiffMapper).GetMethods(BindingFlags.Public | BindingFlags.Static);
+            var genericMethod = methods.FirstOrDefault(m => m.IsGenericMethodDefinition && m.Name == nameof(FindDifferences));
+            if (genericMethod != null)
+            {
+                var constructedMethod = genericMethod.MakeGenericMethod(source.GetType());
+                return (DiffResult)constructedMethod.Invoke(null, new[] { source, target });
+            }
+            
+            // Fallback: Doğrudan generic method'u çağır
+            var fallbackMethod = typeof(DiffMapper).GetMethod(nameof(FindDifferences), BindingFlags.Public | BindingFlags.Static);
+            var constructedFallbackMethod = fallbackMethod.MakeGenericMethod(source.GetType());
+            return (DiffResult)constructedFallbackMethod.Invoke(null, new[] { source, target });
         }
 
         /// <summary>
@@ -238,7 +252,31 @@ namespace FastMapper
                 TargetValue = targetValue
             };
 
-            if (Equals(sourceValue, targetValue))
+            // Decimal değerler için özel karşılaştırma
+            bool areEqual = false;
+            if (sourceValue is decimal sourceDecimal && targetValue is decimal targetDecimal)
+            {
+                areEqual = sourceDecimal == targetDecimal;
+            }
+            else if (sourceValue is IComparable comparable && targetValue != null)
+            {
+                try
+                {
+                    areEqual = comparable.CompareTo(targetValue) == 0;
+                }
+                catch
+                {
+                    areEqual = Equals(sourceValue, targetValue);
+                }
+            }
+            else
+            {
+                areEqual = Equals(sourceValue, targetValue);
+            }
+
+
+
+            if (areEqual)
             {
                 diff.DiffType = DiffType.NoDifference;
                 diff.SimilarityScore = 1.0;
@@ -582,7 +620,7 @@ namespace FastMapper
         private static bool IsComplexType(Type type)
         {
             return !type.IsPrimitive && type != typeof(string) && type != typeof(DateTime) && 
-                   type != typeof(Guid) && !type.IsEnum;
+                   type != typeof(Guid) && type != typeof(decimal) && !type.IsEnum;
         }
 
         /// <summary>
@@ -590,7 +628,15 @@ namespace FastMapper
         /// </summary>
         private static bool IsNullableType(Type type)
         {
-            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+            // Nullable<> tipleri
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                return true;
+            
+            // Reference tipleri (string hariç)
+            if (!type.IsValueType && type != typeof(string))
+                return true;
+            
+            return false;
         }
 
         /// <summary>

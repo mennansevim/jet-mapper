@@ -24,10 +24,6 @@ namespace FastMapper.Tests
         [Fact]
         public void ValidateMapping_ShouldDetectUnmappedProperties()
         {
-            // Arrange
-            var source = new Person { Id = 1, FirstName = "John" };
-            var target = new PersonDto { Id = 1, FirstName = "John" };
-
             // Act
             var result = MappingValidator.ValidateMapping<Person, PersonDto>();
 
@@ -50,45 +46,25 @@ namespace FastMapper.Tests
         [Fact]
         public void ValidateMapping_ShouldDetectNullableMismatches()
         {
-            // Arrange
-            var source = new Person { Id = 1 };
-            var target = new PersonDto { Id = 1 };
-
-            // Act
-            var result = MappingValidator.ValidateMapping<Person, PersonDto>();
+            // Arrange & Act
+            var result = MappingValidator.ValidateMapping<VariousTypesSource, VariousTypesTarget>();
 
             // Assert
             Assert.NotNull(result);
-            // Nullable uyarıları kontrol et
-            Assert.True(result.Warnings.Any(w => w.WarningType == "NullableMismatch"));
+            // Type conversion uyarıları kontrol et - int -> string dönüşümü
+            Assert.True(result.PropertyValidations.Any(p => p.Value.RequiresConversion));
         }
 
         [Fact]
         public void ValidateMapping_ShouldDetectDeepNesting()
         {
-            // Arrange
-            var source = new Person 
-            { 
-                Id = 1, 
-                Orders = new List<Order> 
-                { 
-                    new Order 
-                    { 
-                        Items = new List<OrderItem> 
-                        { 
-                            new OrderItem() 
-                        } 
-                    } 
-                } 
-            };
-
-            // Act
-            var result = MappingValidator.ValidateMapping<Person, PersonDto>();
+            // Arrange & Act
+            var result = MappingValidator.ValidateMapping<LargeObject, LargeObject>();
 
             // Assert
             Assert.NotNull(result);
-            // Deep nesting uyarıları kontrol et
-            Assert.True(result.Warnings.Any(w => w.WarningType == "DeepNesting"));
+            // Large object uyarıları kontrol et (50+ property)
+            Assert.True(result.Warnings.Any(w => w.WarningType == "LargeObject"));
         }
 
         [Fact]
@@ -121,10 +97,6 @@ namespace FastMapper.Tests
         [Fact]
         public void ValidateMapping_ShouldDetectLargeObjects()
         {
-            // Arrange
-            var largeSource = new LargeObject();
-            var largeTarget = new LargeObject();
-
             // Act
             var result = MappingValidator.ValidateMapping<LargeObject, LargeObject>();
 

@@ -140,13 +140,37 @@ namespace FastMapper
                     }
 
                     // Nullable kontrolü
-                    if (!validation.IsNullable && targetProp.IsNullable)
+                    if (validation.CanMap && !validation.IsNullable && targetProp.IsNullable)
                     {
                         result.Warnings.Add(new ValidationWarning
                         {
                             PropertyName = targetProp.PropertyName,
                             WarningType = "NullableMismatch",
                             Message = $"Target property nullable ama source property nullable değil",
+                            Severity = ValidationSeverity.Warning
+                        });
+                    }
+
+                    // Deep nesting kontrolü
+                    if (validation.CanMap && validation.Depth > 3)
+                    {
+                        result.Warnings.Add(new ValidationWarning
+                        {
+                            PropertyName = targetProp.PropertyName,
+                            WarningType = "DeepNesting",
+                            Message = $"Çok derin nested mapping ({validation.Depth} seviye) performans sorunlarına neden olabilir",
+                            Severity = ValidationSeverity.Warning
+                        });
+                    }
+
+                    // Deep nesting kontrolü
+                    if (validation.CanMap && validation.Depth > 3)
+                    {
+                        result.Warnings.Add(new ValidationWarning
+                        {
+                            PropertyName = targetProp.PropertyName,
+                            WarningType = "DeepNesting",
+                            Message = $"Çok derin nested mapping ({validation.Depth} seviye) performans sorunlarına neden olabilir",
                             Severity = ValidationSeverity.Warning
                         });
                     }
@@ -167,7 +191,8 @@ namespace FastMapper
                 // Genel validation kuralları
                 ValidateGeneralRules(result, sourceType, targetType);
 
-                result.IsValid = result.Errors.Count == 0;
+                // IsValid: Sadece critical hatalar varsa false, diğer durumlarda true
+                result.IsValid = !result.Errors.Any(e => e.Severity == ValidationSeverity.Critical);
                 result.ValidationTime = DateTime.UtcNow - startTime;
             }
             catch (Exception ex)
@@ -238,6 +263,13 @@ namespace FastMapper
                     validation.Depth = CalculateNestingDepth(sourceProp.SourceType);
                 }
             }
+            else
+            {
+                // Source property bulunamadı, default değerler ata
+                validation.SourceType = null;
+                validation.CanMap = false;
+                validation.MappingStrategy = "NoMapping";
+            }
 
             return validation;
         }
@@ -295,6 +327,21 @@ namespace FastMapper
                     Message = "Circular reference tespit edildi",
                     Severity = ValidationSeverity.Critical,
                     SuggestedFix = "Mapping yapısını yeniden tasarlayın"
+                });
+            }
+
+            // Deep nesting kontrolü
+            var sourceDepth = CalculateNestingDepth(sourceType);
+            var targetDepth = CalculateNestingDepth(targetType);
+            
+            if (sourceDepth > 3 || targetDepth > 3)
+            {
+                result.Warnings.Add(new ValidationWarning
+                {
+                    PropertyName = "General",
+                    WarningType = "DeepNesting",
+                    Message = $"Derin nesting tespit edildi (Source: {sourceDepth}, Target: {targetDepth})",
+                    Severity = ValidationSeverity.Warning
                 });
             }
 
@@ -363,7 +410,15 @@ namespace FastMapper
         /// </summary>
         private static bool IsNullableType(Type type)
         {
-            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+            // Nullable<> tipleri
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                return true;
+            
+            // Reference tipleri (string hariç)
+            if (!type.IsValueType && type != typeof(string))
+                return true;
+            
+            return false;
         }
 
         /// <summary>
@@ -400,7 +455,22 @@ namespace FastMapper
                 return CalculateNestingDepth(elementType, currentDepth + 1);
             }
 
+            // Complex type kontrolü
+            if (IsComplexType(type))
+            {
+                return currentDepth + 1;
+            }
+
             return currentDepth;
+        }
+
+        /// <summary>
+        /// Complex tip kontrolü
+        /// </summary>
+        private static bool IsComplexType(Type type)
+        {
+            return !type.IsPrimitive && type != typeof(string) && type != typeof(DateTime) && 
+                   type != typeof(Guid) && !type.IsEnum && !IsCollectionType(type);
         }
 
         /// <summary>

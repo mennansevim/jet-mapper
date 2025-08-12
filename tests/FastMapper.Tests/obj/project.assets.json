@@ -5785,7 +5785,6 @@
       "packagesPath": "/Users/sevimm/.nuget/packages/",
       "outputPath": "/Users/sevimm/Documents/Projects/fast-mapper/tests/FastMapper.Tests/obj/",
       "projectStyle": "PackageReference",
-      "UsingMicrosoftNETSdk": false,
       "configFilePaths": [
         "/Users/sevimm/.nuget/NuGet/NuGet.Config"
       ],
@@ -5814,7 +5813,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net6.0": {

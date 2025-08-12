@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace FastMapper
 {
@@ -23,6 +25,13 @@ namespace FastMapper
         private static readonly ConcurrentDictionary<string, Delegate> _customMappings = new();
         private static readonly ConcurrentDictionary<long, Delegate> _typeConverters = new();
 
+        // ULTRA-FAST: Pre-compiled simple mappers for common types
+        private static readonly ConcurrentDictionary<long, Delegate> _simpleMappers = new();
+        
+        // ULTRA-FAST: Lazy initialization flag
+        private static volatile bool _isInitialized = false;
+        private static readonly object _initLock = new object();
+
         /// <summary>
         /// ULTRA-FAST mapping - AutoMapper'dan daha hızlı!
         /// </summary>
@@ -31,30 +40,56 @@ namespace FastMapper
         {
             if (source == null) return default(TTarget);
             
+            // ULTRA-FAST: Lazy initialization
+            if (!_isInitialized)
+            {
+                lock (_initLock)
+                {
+                    if (!_isInitialized)
+                    {
+                        InitializeFastMappers();
+                        _isInitialized = true;
+                    }
+                }
+            }
+            
             var sourceType = source.GetType();
             var targetType = typeof(TTarget);
             var key = GetTypeKey(sourceType, targetType);
             
+            // ULTRA-FAST: Check for pre-compiled simple mapper first
+            if (_simpleMappers.TryGetValue(key, out var simpleMapper))
+            {
+                return ((Func<object, TTarget>)simpleMapper)(source);
+            }
+            
             // Get or create TYPED mapper - NO boxing!
             var mapper = (Func<object, TTarget>)_typedMappers.GetOrAdd(key, 
                 _ => CreateUltraFastTypedMapper<TTarget>(sourceType, targetType));
-            
-            var startTime = DateTime.UtcNow;
+       
             TTarget result;
+            
+            #if DEBUG
+            var startTime = DateTime.UtcNow;
+            #endif
             
             try
             {
                 result = mapper(source);
                 
-                // Diagnostic kayıt
+                // Diagnostic kayıt - only in debug mode
+                #if DEBUG
                 DiagnosticMapper.RecordMapping<object, TTarget>(
                     DateTime.UtcNow - startTime, true);
+                #endif
             }
             catch (Exception ex)
             {
-                // Diagnostic kayıt
+                // Diagnostic kayıt - only in debug mode
+                #if DEBUG
                 DiagnosticMapper.RecordMapping<object, TTarget>(
                     DateTime.UtcNow - startTime, false, ex);
+                #endif
                 throw;
             }
             
@@ -69,6 +104,19 @@ namespace FastMapper
         {
             if (source == null || target == null) return;
             
+            // ULTRA-FAST: Lazy initialization
+            if (!_isInitialized)
+            {
+                lock (_initLock)
+                {
+                    if (!_isInitialized)
+                    {
+                        InitializeFastMappers();
+                        _isInitialized = true;
+                    }
+                }
+            }
+            
             var sourceType = source.GetType();
             var targetType = typeof(TTarget);
             var key = GetTypeKey(sourceType, targetType) | unchecked((long)0x8000000000000000);
@@ -77,21 +125,27 @@ namespace FastMapper
             var mapper = (Action<object, TTarget>)_typedMappers.GetOrAdd(key, 
                 _ => CreateUltraFastInPlaceMapper<TTarget>(sourceType, targetType));
             
+            #if DEBUG
             var startTime = DateTime.UtcNow;
-            
+            #endif
+     
             try
             {
                 mapper(source, target);
                 
-                // Diagnostic kayıt
+                // Diagnostic kayıt - only in debug mode
+                #if DEBUG
                 DiagnosticMapper.RecordMapping<object, TTarget>(
                     DateTime.UtcNow - startTime, true);
+                #endif
             }
             catch (Exception ex)
             {
-                // Diagnostic kayıt
+                // Diagnostic kayıt - only in debug mode
+                #if DEBUG
                 DiagnosticMapper.RecordMapping<object, TTarget>(
                     DateTime.UtcNow - startTime, false, ex);
+                #endif
                 throw;
             }
         }
@@ -104,80 +158,263 @@ namespace FastMapper
         {
             if (sources == null) return new List<TTarget>();
             
-            var sourceList = sources as IList<object> ?? sources.ToList();
-            var result = new List<TTarget>(sourceList.Count);
-            
-            if (sourceList.Count == 0) return result;
-            
-            // Get mapper for first item type
-            var sourceType = sourceList[0]?.GetType();
-            if (sourceType == null) return result;
-            
-            var targetType = typeof(TTarget);
-            var key = GetTypeKey(sourceType, targetType);
-            var mapper = (Func<object, TTarget>)_typedMappers.GetOrAdd(key, 
-                _ => CreateUltraFastTypedMapper<TTarget>(sourceType, targetType));
-            
-            // ULTRA-FAST bulk mapping with pre-allocated list
-            for (int i = 0; i < sourceList.Count; i++)
+            // ULTRA-FAST: Lazy initialization
+            if (!_isInitialized)
             {
-                if (sourceList[i] != null)
+                lock (_initLock)
                 {
-                    result.Add(mapper(sourceList[i]));
-                }
-                else
-                {
-                    result.Add(default(TTarget));
+                    if (!_isInitialized)
+                    {
+                        InitializeFastMappers();
+                        _isInitialized = true;
+                    }
                 }
             }
             
-            return result;
+            var list = new List<TTarget>();
+            var mapper = default(Func<object, TTarget>);
+            var sourceType = default(Type);
+            
+            foreach (var source in sources)
+            {
+                if (source == null) continue;
+                
+                // ULTRA-FAST: Cache mapper for same type
+                if (mapper == null || source.GetType() != sourceType)
+                {
+                    sourceType = source.GetType();
+                    var targetType = typeof(TTarget);
+                    var key = GetTypeKey(sourceType, targetType);
+                    
+                    // Check for pre-compiled simple mapper first
+                    if (_simpleMappers.TryGetValue(key, out var simpleMapper))
+                    {
+                        mapper = (Func<object, TTarget>)simpleMapper;
+                    }
+                    else
+                    {
+                        mapper = (Func<object, TTarget>)_typedMappers.GetOrAdd(key, 
+                            _ => CreateUltraFastTypedMapper<TTarget>(sourceType, targetType));
+                    }
+                }
+                
+                list.Add(mapper(source));
+            }
+            
+            return list;
         }
 
         /// <summary>
-        /// Creates ULTRA-FAST typed mapper with ZERO boxing
+        /// ULTRA-FAST: Pre-compile simple mappers for common scenarios
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void InitializeFastMappers()
+        {
+            // Pre-compile common simple mappings
+            PreCompileSimpleMappers();
+        }
+
+        /// <summary>
+        /// ULTRA-FAST: Pre-compile simple mappers for common types
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void PreCompileSimpleMappers()
+        {
+            // Pre-compile common simple mappings
+            // Bu kısım runtime'da otomatik olarak genişletilecek
+        }
+
+        /// <summary>
+        /// ULTRA-FAST: Create optimized mapper for simple types
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static Func<object, TTarget> CreateUltraFastTypedMapper<TTarget>(Type sourceType, Type targetType) where TTarget : new()
         {
+            // ULTRA-FAST: Check if this is a simple mapping that can be pre-compiled
+            if (IsSimpleMapping(sourceType, targetType))
+            {
+                return CreateSimpleTypedMapper<TTarget>(sourceType, targetType);
+            }
+            
             var sourceParam = Expression.Parameter(typeof(object), "source");
-            var typedSource = Expression.Convert(sourceParam, sourceType);
+            var sourceCast = Expression.Convert(sourceParam, sourceType);
+            var targetParam = Expression.Parameter(targetType, "target");
             
-            // Create new target instance
-            var newTarget = Expression.New(targetType);
-            var targetVar = Expression.Variable(targetType, "target");
-            var assignTarget = Expression.Assign(targetVar, newTarget);
+            var propertyAccessors = _propertyAccessors.GetOrAdd(GetTypeKey(sourceType, targetType),
+                _ => CreatePropertyAccessors(sourceType, targetType));
             
-            // Get property accessors
-            var key = GetTypeKey(sourceType, targetType);
-            var accessors = _propertyAccessors.GetOrAdd(key, _ => CreatePropertyAccessors(sourceType, targetType));
+            var expressions = new List<Expression>();
             
-            var assignments = new List<Expression> { assignTarget };
-            
-            // ULTRA-FAST direct property assignments - NO Convert.ChangeType!
-            foreach (var (getter, setter) in accessors)
+            // ULTRA-FAST: Direct property mapping with NO boxing
+            foreach (var (getter, setter) in propertyAccessors)
             {
                 if (getter != null && setter != null)
                 {
-                    var getterCall = Expression.Invoke(Expression.Constant(getter), typedSource);
-                    var setterCall = Expression.Invoke(Expression.Constant(setter), targetVar, getterCall);
-                    assignments.Add(setterCall);
+                    var getterCall = Expression.Invoke(Expression.Constant(getter), sourceCast);
+                    var setterCall = Expression.Invoke(Expression.Constant(setter), targetParam, getterCall);
+                    expressions.Add(setterCall);
                 }
             }
             
-            assignments.Add(targetVar);
-            var body = Expression.Block(new[] { targetVar }, assignments);
+            // ULTRA-FAST: Create target instance
+            var newTarget = Expression.New(targetType);
+            expressions.Insert(0, Expression.Assign(targetParam, newTarget));
             
-            var lambda = Expression.Lambda<Func<object, TTarget>>(body, sourceParam);
+            // ULTRA-FAST: Return the target instance
+            expressions.Add(targetParam);
+            
+            var block = Expression.Block(new[] { targetParam }, expressions);
+            var lambda = Expression.Lambda<Func<object, TTarget>>(block, sourceParam);
+            
             return lambda.Compile();
         }
 
         /// <summary>
-        /// Creates ULTRA-FAST in-place mapper
+        /// ULTRA-FAST: Check if this is a simple mapping
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsSimpleMapping(Type sourceType, Type targetType)
+        {
+            // Simple mapping: primitive types, strings, basic DTOs
+            var sourceProps = sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var targetProps = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            
+            // ULTRA-FAST: Quick check for simple scenarios
+            if (sourceProps.Length <= 5 && targetProps.Length <= 5)
+            {
+                foreach (var sourceProp in sourceProps)
+                {
+                    if (!sourceProp.CanRead) continue;
+                    
+                    var targetProp = targetProps.FirstOrDefault(p => 
+                        p.CanWrite && 
+                        string.Equals(p.Name, sourceProp.Name, StringComparison.OrdinalIgnoreCase));
+                    
+                    if (targetProp == null) continue;
+                    
+                    // ULTRA-FAST: Check if types are directly compatible
+                    if (!IsDirectlyCompatible(sourceProp.PropertyType, targetProp.PropertyType))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// ULTRA-FAST: Check if types are directly compatible
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsDirectlyCompatible(Type sourceType, Type targetType)
+        {
+            // ULTRA-FAST: Direct type compatibility check
+            if (sourceType == targetType) return true;
+            if (sourceType.IsPrimitive && targetType.IsPrimitive) return true;
+            if (sourceType == typeof(string) && targetType == typeof(string)) return true;
+            if (sourceType == typeof(DateTime) && targetType == typeof(DateTime)) return true;
+            if (sourceType == typeof(Guid) && targetType == typeof(Guid)) return true;
+            
+            // ULTRA-FAST: Nullable type compatibility
+            if (sourceType.IsGenericType && sourceType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                var underlyingSourceType = Nullable.GetUnderlyingType(sourceType);
+                if (underlyingSourceType == targetType) return true;
+            }
+            
+            if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                var underlyingTargetType = Nullable.GetUnderlyingType(targetType);
+                if (sourceType == underlyingTargetType) return true;
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// ULTRA-FAST: Create simple typed mapper for basic scenarios
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Func<object, TTarget> CreateSimpleTypedMapper<TTarget>(Type sourceType, Type targetType) where TTarget : new()
+        {
+            var sourceParam = Expression.Parameter(typeof(object), "source");
+            var sourceCast = Expression.Convert(sourceParam, sourceType);
+            
+            // ULTRA-FAST: Create target instance
+            var newTarget = Expression.New(targetType);
+            var targetVar = Expression.Variable(targetType, "target");
+            
+            var expressions = new List<Expression>();
+            expressions.Add(Expression.Assign(targetVar, newTarget));
+            
+            // ULTRA-FAST: Direct property mapping for simple types
+            var sourceProps = sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var targetProps = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            
+            foreach (var sourceProp in sourceProps)
+            {
+                if (!sourceProp.CanRead) continue;
+                
+                var targetProp = targetProps.FirstOrDefault(p => 
+                    p.CanWrite && 
+                    string.Equals(p.Name, sourceProp.Name, StringComparison.OrdinalIgnoreCase));
+                
+                if (targetProp == null) continue;
+                
+                // ULTRA-FAST: Safe type conversion with compatibility check
+                Expression assignment;
+                
+                if (sourceProp.PropertyType == targetProp.PropertyType)
+                {
+                    // Direct assignment for same types
+                    var sourceProperty = Expression.Property(sourceCast, sourceProp);
+                    var targetProperty = Expression.Property(targetVar, targetProp);
+                    assignment = Expression.Assign(targetProperty, sourceProperty);
+                    expressions.Add(assignment);
+                }
+                else if (targetProp.PropertyType.IsAssignableFrom(sourceProp.PropertyType))
+                {
+                    // Direct assignment for compatible types
+                    var sourceProperty = Expression.Property(sourceCast, sourceProp);
+                    var targetProperty = Expression.Property(targetVar, targetProp);
+                    assignment = Expression.Assign(targetProperty, sourceProperty);
+                    expressions.Add(assignment);
+                }
+                else if (IsConvertible(sourceProp.PropertyType, targetProp.PropertyType))
+                {
+                    // Convert assignment for convertible types
+                    var sourceProperty = Expression.Property(sourceCast, sourceProp);
+                    var targetProperty = Expression.Property(targetVar, targetProp);
+                    var converted = Expression.Convert(sourceProperty, targetProp.PropertyType);
+                    assignment = Expression.Assign(targetProperty, converted);
+                    expressions.Add(assignment);
+                }
+                // Skip incompatible properties
+            }
+            
+            // Return the target
+            expressions.Add(targetVar);
+            
+            var block = Expression.Block(new[] { targetVar }, expressions);
+            var lambda = Expression.Lambda<Func<object, TTarget>>(block, sourceParam);
+            
+            return lambda.Compile();
+        }
+
+        /// <summary>
+        /// ULTRA-FAST: Create optimized in-place mapper for simple types
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static Action<object, TTarget> CreateUltraFastInPlaceMapper<TTarget>(Type sourceType, Type targetType)
         {
+            // ULTRA-FAST: Check if this is a simple mapping that can be optimized
+            if (IsSimpleMapping(sourceType, targetType))
+            {
+                return CreateSimpleInPlaceMapper<TTarget>(sourceType, targetType);
+            }
+            
             var sourceParam = Expression.Parameter(typeof(object), "source");
             var targetParam = Expression.Parameter(typeof(TTarget), "target");
             var typedSource = Expression.Convert(sourceParam, sourceType);
@@ -201,6 +438,70 @@ namespace FastMapper
             
             var body = assignments.Count > 0 ? Expression.Block(assignments) : (Expression)Expression.Empty();
             var lambda = Expression.Lambda<Action<object, TTarget>>(body, sourceParam, targetParam);
+            
+            return lambda.Compile();
+        }
+
+        /// <summary>
+        /// ULTRA-FAST: Create simple in-place mapper for basic scenarios
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Action<object, TTarget> CreateSimpleInPlaceMapper<TTarget>(Type sourceType, Type targetType)
+        {
+            var sourceParam = Expression.Parameter(typeof(object), "source");
+            var targetParam = Expression.Parameter(typeof(TTarget), "target");
+            var sourceCast = Expression.Convert(sourceParam, sourceType);
+            
+            var expressions = new List<Expression>();
+            
+            // ULTRA-FAST: Direct property mapping for simple types
+            var sourceProps = sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var targetProps = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            
+            foreach (var sourceProp in sourceProps)
+            {
+                if (!sourceProp.CanRead) continue;
+                
+                var targetProp = targetProps.FirstOrDefault(p => 
+                    p.CanWrite && 
+                    string.Equals(p.Name, sourceProp.Name, StringComparison.OrdinalIgnoreCase));
+                
+                if (targetProp == null) continue;
+                
+                // ULTRA-FAST: Safe type conversion with compatibility check
+                Expression assignment;
+                
+                if (sourceProp.PropertyType == targetProp.PropertyType)
+                {
+                    // Direct assignment for same types
+                    var sourceProperty = Expression.Property(sourceCast, sourceProp);
+                    var targetProperty = Expression.Property(targetParam, targetProp);
+                    assignment = Expression.Assign(targetProperty, sourceProperty);
+                    expressions.Add(assignment);
+                }
+                else if (targetProp.PropertyType.IsAssignableFrom(sourceProp.PropertyType))
+                {
+                    // Direct assignment for compatible types
+                    var sourceProperty = Expression.Property(sourceCast, sourceProp);
+                    var targetProperty = Expression.Property(targetParam, targetProp);
+                    assignment = Expression.Assign(targetProperty, sourceProperty);
+                    expressions.Add(assignment);
+                }
+                else if (IsConvertible(sourceProp.PropertyType, targetProp.PropertyType))
+                {
+                    // Convert assignment for convertible types
+                    var sourceProperty = Expression.Property(sourceCast, sourceProp);
+                    var targetProperty = Expression.Property(targetParam, targetProp);
+                    var converted = Expression.Convert(sourceProperty, targetProp.PropertyType);
+                    assignment = Expression.Assign(targetProperty, converted);
+                    expressions.Add(assignment);
+                }
+                // Skip incompatible properties
+            }
+            
+            var body = expressions.Count > 0 ? Expression.Block(expressions) : (Expression)Expression.Empty();
+            var lambda = Expression.Lambda<Action<object, TTarget>>(body, sourceParam, targetParam);
+            
             return lambda.Compile();
         }
 
@@ -233,8 +534,8 @@ namespace FastMapper
                         continue;
                     }
                     
-                    // Check type compatibility
-                    if (targetProp.PropertyType.IsAssignableFrom(sourceProp.PropertyType))
+                    // ULTRA-FAST: Enhanced type compatibility check
+                    if (IsDirectlyCompatible(sourceProp.PropertyType, targetProp.PropertyType))
                     {
                         // Direct assignment - FASTEST path
                         var getter = CreatePropertyGetter(sourceProp);
@@ -259,6 +560,7 @@ namespace FastMapper
                             accessors.Add((convertingGetter, setter));
                         }
                     }
+                    // Skip incompatible properties to avoid runtime errors
                 }
             }
             
@@ -337,6 +639,64 @@ namespace FastMapper
                     Expression.Constant(true));
                 conversion = Expression.Convert(conversion, targetType);
             }
+            else if (IsEnumListType(targetType, out var enumElementType))
+            {
+                // String/JArray to List<TEnum> or IEnumerable<TEnum>
+                if (sourceProp.PropertyType == typeof(string))
+                {
+                    var method = typeof(MapperExtensions)
+                        .GetMethod(nameof(ParseEnumListFromString), BindingFlags.NonPublic | BindingFlags.Static)
+                        .MakeGenericMethod(enumElementType);
+                    var call = Expression.Call(method, propAccess);
+                    conversion = call.Type != targetType ? Expression.Convert(call, targetType) : (Expression)call;
+                }
+                else if (sourceProp.PropertyType == typeof(JArray))
+                {
+                    var method = typeof(MapperExtensions)
+                        .GetMethod(nameof(ParseEnumListFromJArray), BindingFlags.NonPublic | BindingFlags.Static)
+                        .MakeGenericMethod(enumElementType);
+                    var call = Expression.Call(method, propAccess);
+                    conversion = call.Type != targetType ? Expression.Convert(call, targetType) : (Expression)call;
+                }
+                else
+                {
+                    // Fallback: try string conversion via ToString
+                    var toStringMethod = typeof(object).GetMethod("ToString");
+                    var asString = Expression.Call(propAccess, toStringMethod);
+                    var method = typeof(MapperExtensions)
+                        .GetMethod(nameof(ParseEnumListFromString), BindingFlags.NonPublic | BindingFlags.Static)
+                        .MakeGenericMethod(enumElementType);
+                    var call = Expression.Call(method, asString);
+                    conversion = call.Type != targetType ? Expression.Convert(call, targetType) : (Expression)call;
+                }
+            }
+            else if (targetType.IsArray && targetType.GetElementType() != null && targetType.GetElementType().IsEnum)
+            {
+                var arrayEnumElementType = targetType.GetElementType();
+                if (sourceProp.PropertyType == typeof(string))
+                {
+                    var method = typeof(MapperExtensions)
+                        .GetMethod(nameof(ParseEnumArrayFromString), BindingFlags.NonPublic | BindingFlags.Static)
+                        .MakeGenericMethod(arrayEnumElementType);
+                    conversion = Expression.Call(method, propAccess);
+                }
+                else if (sourceProp.PropertyType == typeof(JArray))
+                {
+                    var method = typeof(MapperExtensions)
+                        .GetMethod(nameof(ParseEnumArrayFromJArray), BindingFlags.NonPublic | BindingFlags.Static)
+                        .MakeGenericMethod(arrayEnumElementType);
+                    conversion = Expression.Call(method, propAccess);
+                }
+                else
+                {
+                    var toStringMethod = typeof(object).GetMethod("ToString");
+                    var asString = Expression.Call(propAccess, toStringMethod);
+                    var method = typeof(MapperExtensions)
+                        .GetMethod(nameof(ParseEnumArrayFromString), BindingFlags.NonPublic | BindingFlags.Static)
+                        .MakeGenericMethod(arrayEnumElementType);
+                    conversion = Expression.Call(method, asString);
+                }
+            }
             else if (sourceProp.PropertyType.IsEnum && targetType == typeof(string))
             {
                 // Enum to string conversion
@@ -351,6 +711,89 @@ namespace FastMapper
             
             var lambda = Expression.Lambda(conversion, param);
             return lambda.Compile();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsEnumListType(Type type, out Type enumElementType)
+        {
+            enumElementType = null;
+            if (!type.IsGenericType) return false;
+            var genDef = type.GetGenericTypeDefinition();
+            if (genDef != typeof(List<>) && genDef != typeof(IList<>) && genDef != typeof(IEnumerable<>))
+                return false;
+            var elem = type.GetGenericArguments()[0];
+            if (!elem.IsEnum) return false;
+            enumElementType = elem;
+            return true;
+        }
+
+        // Helpers: JSON/String → Enum / Enum List / Enum Array
+        private static bool TryParseEnumToken<TEnum>(string token, out TEnum value) where TEnum : struct
+        {
+            value = default;
+            if (string.IsNullOrWhiteSpace(token)) return false;
+            token = token.Trim();
+            // direct
+            if (Enum.TryParse<TEnum>(token, true, out value)) return true;
+            // normalize simple separators
+            var normalized = token.Replace("-", "_").Replace(" ", "");
+            return Enum.TryParse<TEnum>(normalized, true, out value);
+        }
+
+        private static TEnum ParseEnumStrict<TEnum>(string token) where TEnum : struct
+        {
+            if (TryParseEnumToken<TEnum>(token, out var parsed))
+            {
+                return parsed;
+            }
+            throw new InvalidOperationException($"Invalid enum value '{token}' for {typeof(TEnum).Name}");
+        }
+
+        private static List<TEnum> ParseEnumListFromString<TEnum>(string input) where TEnum : struct
+        {
+            var list = new List<TEnum>();
+            if (string.IsNullOrWhiteSpace(input)) return list;
+            try
+            {
+                if (input.TrimStart().StartsWith("["))
+                {
+                    var items = JsonConvert.DeserializeObject<List<string>>(input) ?? new List<string>();
+                    foreach (var s in items)
+                    {
+                        list.Add(ParseEnumStrict<TEnum>(s));
+                    }
+                    return list;
+                }
+            }
+            catch { /* ignore and try CSV */ }
+            // CSV path
+            foreach (var part in input.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                list.Add(ParseEnumStrict<TEnum>(part));
+            }
+            return list;
+        }
+
+        private static List<TEnum> ParseEnumListFromJArray<TEnum>(JArray arr) where TEnum : struct
+        {
+            var list = new List<TEnum>();
+            if (arr == null) return list;
+            foreach (var token in arr)
+            {
+                var s = token?.ToString();
+                list.Add(ParseEnumStrict<TEnum>(s));
+            }
+            return list;
+        }
+
+        private static TEnum[] ParseEnumArrayFromString<TEnum>(string input) where TEnum : struct
+        {
+            return ParseEnumListFromString<TEnum>(input).ToArray();
+        }
+
+        private static TEnum[] ParseEnumArrayFromJArray<TEnum>(JArray arr) where TEnum : struct
+        {
+            return ParseEnumListFromJArray<TEnum>(arr).ToArray();
         }
 
         /// <summary>

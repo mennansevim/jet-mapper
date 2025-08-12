@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using AutoMapper;
 using FastMapper;
+using Mapster;
 using System.Collections.Generic;
 using System.Linq;
 using System;
@@ -275,6 +276,24 @@ namespace FastMapper.Benchmarks
                     var employeeSource = (BenchmarkModels.EmployeeSource)source;
                     return string.Join(", ", employeeSource.Skills ?? new List<string>());
                 });
+
+            // Setup Mapster configurations
+            TypeAdapterConfig<BenchmarkModels.SimpleSource, BenchmarkModels.SimpleTarget>
+                .NewConfig()
+                .Compile();
+
+            TypeAdapterConfig<BenchmarkModels.ComplexSource, BenchmarkModels.CustomerDto>
+                .NewConfig()
+                .Map(dest => dest.FullName, src => $"{src.FirstName} {src.LastName}")
+                .Compile();
+
+            TypeAdapterConfig<BenchmarkModels.EmployeeSource, BenchmarkModels.EmployeeDto>
+                .NewConfig()
+                .Map(dest => dest.FullName, src => $"{src.FirstName} {src.LastName}")
+                .Map(dest => dest.AnnualSalary, src => src.Salary * 12)
+                .Map(dest => dest.YearsOfService, src => DateTime.Now.Year - src.HireDate.Year)
+                .Map(dest => dest.SkillsString, src => string.Join(", ", src.Skills ?? new List<string>()))
+                .Compile();
         }
 
         // Manual mapping baseline
@@ -452,6 +471,58 @@ namespace FastMapper.Benchmarks
             return _complexSource!.FastMapTo<BenchmarkModels.CustomerDto>();
         }
 
+        // Mapster benchmarks
+        [Benchmark]
+        public BenchmarkModels.SimpleTarget Mapster_Simple()
+        {
+            return _simpleSource!.Adapt<BenchmarkModels.SimpleTarget>();
+        }
+
+        [Benchmark]
+        public BenchmarkModels.SimpleTarget Mapster_Simple_ExistingObject()
+        {
+            return _simpleSource!.Adapt<BenchmarkModels.SimpleTarget>();
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto Mapster_Complex()
+        {
+            return _complexSource!.Adapt<BenchmarkModels.CustomerDto>();
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto Mapster_Complex_ExistingObject()
+        {
+            return _complexSource!.Adapt<BenchmarkModels.CustomerDto>();
+        }
+
+        [Benchmark]
+        public List<BenchmarkModels.CustomerDto> Mapster_BulkMapping()
+        {
+            return _bulkSources!.Adapt<List<BenchmarkModels.CustomerDto>>();
+        }
+
+        [Benchmark]
+        public BenchmarkModels.CustomerDto Mapster_WithCustomMapping()
+        {
+            return _complexSource!.Adapt<BenchmarkModels.CustomerDto>();
+        }
+
+        [Benchmark]
+        public List<BenchmarkModels.EmployeeDto> Mapster_EmployeeMapping()
+        {
+            return _employeeSources!.Adapt<List<BenchmarkModels.EmployeeDto>>();
+        }
+
+        [Benchmark]
+        public void Mapster_PerformanceTest()
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                _complexSource!.Adapt<BenchmarkModels.CustomerDto>();
+            }
+        }
+
         // Performance comparison methods
         [Benchmark]
         public void AutoMapper_PerformanceTest()
@@ -528,8 +599,6 @@ namespace FastMapper.Benchmarks
     {
         public static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<MapperBenchmarks>();
-            
             // Benchmark sonuçlarını görselleştir
             var resultsPath = Path.Combine(Directory.GetCurrentDirectory(), "BenchmarkDotNet.Artifacts", "results");
             if (!Directory.Exists(resultsPath))
@@ -677,31 +746,7 @@ namespace FastMapper.Benchmarks
         {
             var plt = new Plot(1200, 800);
             
-            var fastMapperResults = results.Where(r => r.Method.Contains("FastMapper")).ToList();
-            var autoMapperResults = results.Where(r => r.Method.Contains("AutoMapper")).ToList();
-            var manualResults = results.Where(r => r.Method.Contains("Manual")).ToList();
-            
-            var fastMapperScatter = plt.AddScatter(
-                fastMapperResults.Select(r => r.Allocated).ToArray(),
-                fastMapperResults.Select(r => r.Mean).ToArray(),
-                label: "FastMapper",
-                color: System.Drawing.Color.Green
-            );
-            
-            var autoMapperScatter = plt.AddScatter(
-                autoMapperResults.Select(r => r.Allocated).ToArray(),
-                autoMapperResults.Select(r => r.Mean).ToArray(),
-                label: "AutoMapper",
-                color: System.Drawing.Color.Red
-            );
-            
-            var manualScatter = plt.AddScatter(
-                manualResults.Select(r => r.Allocated).ToArray(),
-                manualResults.Select(r => r.Mean).ToArray(),
-                label: "Manual",
-                color: System.Drawing.Color.Blue
-            );
-            
+       
             plt.XAxis.Label("Memory Allocated (bytes)");
             plt.YAxis.Label("Execution Time (ns)");
             plt.Title("Speed vs Memory Efficiency");

@@ -4,7 +4,6 @@ using System.Linq;
 using Xunit;
 using FastMapper;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace FastMapper.Tests
 {
@@ -19,7 +18,8 @@ namespace FastMapper.Tests
                 Id = 1,
                 FirstName = "John",
                 LastName = "Doe",
-                BirthDate = new DateTime(1990, 1, 1)
+                BirthDate = new DateTime(1990, 1, 1),
+                IsActive = true
             };
 
             // Act
@@ -150,9 +150,9 @@ namespace FastMapper.Tests
             };
 
             // Act
-            var results = await sources.Map()
-                .Map<PersonDto>(dto => dto.FullName, p => $"{p.FirstName} {p.LastName}")
-                .ToListAsync<PersonDto>();
+            var fluentMapper = sources.First().Map()
+                .Map<PersonDto>(dto => dto.FullName, p => $"{p.FirstName} {p.LastName}");
+            var results = await fluentMapper.ToListAsync<PersonDto>(sources);
 
             // Assert
             Assert.NotNull(results);
@@ -200,6 +200,7 @@ namespace FastMapper.Tests
             // Assert
             Assert.NotNull(result);
             Assert.Equal("John Doe", result.FullName);
+            Assert.NotNull(result.HomeAddress);
             Assert.Equal("123 Main St, New York, USA", result.HomeAddress.FullAddress);
         }
     }
