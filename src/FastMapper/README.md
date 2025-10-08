@@ -4,58 +4,59 @@
 [![NuGet](https://img.shields.io/nuget/v/FastMapper.svg)](https://www.nuget.org/packages/FastMapper)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**FastMapper**, .NET için geliştirilmiş ultra-performanslı bir nesne eşleme (object mapping) kütüphanesidir. AutoMapper'dan **2-3x daha hızlı** çalışır ve sıfır konfigürasyon gerektirir.
+**FastMapper** is an ultra-performance object mapping library developed for .NET. It runs **2-3x faster** than AutoMapper and requires zero configuration.
 
-## 🚀 Özellikler
+## 🚀 Features
 
-### ⚡ Ultra-Performans
-- **2-3x daha hızlı** AutoMapper'a göre
+### ⚡ Ultra-Performance
+- **2-3x faster** compared to AutoMapper
 - **Expression tree-based** compilation
-- **Zero allocation** stratejileri
-- **Aggressive caching** sistemi
+- **Zero allocation** strategies
+- **Aggressive caching** system
 - **Pre-compiled delegates**
 
-### 🔧 Gelişmiş API'ler
-- **Fluent API** - Zincirlenebilir mapping
-- **Conditional Mapping** - Koşullu eşleme
-- **Async Mapping** - Asenkron liste eşleme
-- **Diff Mapping** - Nesne farkları bulma
-- **Snapshot & Restore** - Nesne durumu kaydetme
-- **Diagnostic & Profiling** - Performans analizi
-- **Partial Merge** - Kısmi nesne güncelleme
+### 🔧 Advanced APIs
+- **Fluent API** - Chainable mapping
+- **Conditional Mapping** - Conditional mapping
+- **Async Mapping** - Asynchronous list mapping
+- **Diff Mapping** - Finding object differences
+- **Snapshot & Restore** - Saving object state
+- **Diagnostic & Profiling** - Performance analysis
+- **Partial Merge** - Partial object update
 
-### 🛡️ Güvenlik ve Doğrulama
+### 🛡️ Security and Validation
 - **Mapping Validator** - Compile-time validation
-- **Type safety** - Tam tip güvenliği
-- **Error handling** - Kapsamlı hata yönetimi
-- **Compatibility modes** - Geriye dönük uyumluluk
+- **Type safety** - Full type safety
+- **Error handling** - Comprehensive error management
+- **Compatibility modes** - Backward compatibility
 
-## 📦 Kurulum
+## 📦 Installation
 
 ```bash
 dotnet add package FastMapper
 ```
 
-## 🎯 Hızlı Başlangıç
+## 🎯 Quick Start
 
-### Temel Kullanım
+### Basic Usage
 
 ```csharp
 using FastMapper;
 
-// Basit mapping
+// Simple mapping
 var person = new Person { Id = 1, FirstName = "John", LastName = "Doe" };
 var dto = person.FastMapTo<PersonDto>();
 
-// Mevcut nesneye mapping
+// Mapping to existing object
 var existingDto = new PersonDto();
 person.FastMapTo(existingDto);
 ```
 
 ### Fluent API
 
-Zincirlenebilir methodlarla okunaklı ve açık mapping tanımları yapabilirsiniz. `Map`, `Ignore`, `MapIf` gibi methodlarla inline eşleme.
+Create readable and clear mapping definitions with chainable methods. Inline mapping with methods like `Map`, `Ignore`, `MapIf`.
 
+#### Old API (Unnecessary Repetition)
 ```csharp
 var result = person.Map()
     .Map<PersonDto>(dto => dto.FullName, p => $"{p.FirstName} {p.LastName}")
@@ -64,10 +65,27 @@ var result = person.Map()
     .To<PersonDto>();
 ```
 
-### Koşullu Mapping
+#### New API (Clean and Readable)
+```csharp
+var result = person.Map()
+    .MapTo<PersonDto>()
+    .Map(dto => dto.FullName, p => $"{p.FirstName} {p.LastName}")
+    .Map(dto => dto.Status, p => p.IsActive ? "Active" : "Inactive")
+    .Ignore(dto => dto.InternalId)
+    .To();
+```
 
-Belirli koşullar sağlandığında ilgili özelliklerin eşlenmesini sağlar. Koşullu mapping ile dinamik eşleme yapabilirsiniz.
+**Advantages:**
+- ✅ Target type is determined once (`MapTo<TTarget>()`)
+- ✅ No type repetition in each `Map()` call
+- ✅ Cleaner and more readable code
+- ✅ Backward compatibility is maintained
 
+### Conditional Mapping
+
+Maps relevant properties when specific conditions are met. Dynamic mapping with conditional mapping.
+
+#### Old API
 ```csharp
 var result = person.Map()
     .MapIf<PersonDto>(dto => dto.Status, 
@@ -79,31 +97,45 @@ var result = person.Map()
     .To<PersonDto>();
 ```
 
-### Hedef Property Kontrolü ile Koşullu Mapping
-
-Hedef nesnenin belirli property'lerinin null olup olmadığını kontrol ederek mapping yapabilirsiniz:
-
+#### New API
 ```csharp
-// VAT oranına göre koşullu mapping
-var result = invoice.Map()
-    .MapIf<InvoiceDto>(dto => dto.VatRate, 
-        dto => dto.Vat18,  // Eğer Vat18 null değilse
-        i => i.Vat18)
-    .MapIf<InvoiceDto>(dto => dto.VatRate, 
-        dto => dto.Vat20,  // Eğer Vat20 null değilse
-        i => i.Vat20)
-    .MapIf<InvoiceDto>(dto => dto.VatRate, 
-        dto => dto.Vat8,   // Eğer Vat8 null değilse
-        i => i.Vat8)
-    .To<InvoiceDto>();
+var result = person.Map()
+    .MapTo<PersonDto>()
+    .MapIf(dto => dto.Status, 
+        p => p.IsActive, 
+        p => "Active")
+    .MapIf(dto => dto.Age, 
+        p => p.BirthDate != default(DateTime), 
+        p => DateTime.Now.Year - p.BirthDate.Year)
+    .To();
 ```
 
-### If-Else If-Else Mantığı ile Koşullu Mapping
+### Conditional Mapping with Target Property Check
 
-`MapIfElse` methodu ile if-else if-else mantığında koşullu mapping yapabilirsiniz:
+You can perform mapping by checking whether specific properties of the target object are null:
 
 ```csharp
-// If-else if-else mantığı ile VAT oranı mapping
+// Conditional mapping based on VAT rate
+var result = invoice.Map()
+    .MapTo<InvoiceDto>()
+    .MapIf(dto => dto.VatRate, 
+        dto => dto.Vat18,  // If Vat18 is not null
+        i => i.Vat18)
+    .MapIf(dto => dto.VatRate, 
+        dto => dto.Vat20,  // If Vat20 is not null
+        i => i.Vat20)
+    .MapIf(dto => dto.VatRate, 
+        dto => dto.Vat8,   // If Vat8 is not null
+        i => i.Vat8)
+    .To();
+```
+
+### Conditional Mapping with If-Else If-Else Logic
+
+You can perform conditional mapping with if-else if-else logic using the `MapIfElse` method:
+
+```csharp
+// VAT rate mapping with if-else if-else logic
 var result = invoice.Map()
     .MapIfElse<InvoiceDto>(dto => dto.VatRate,
         (dto => dto.Vat18, i => i.Vat18),    // if Vat18 != null
@@ -112,30 +144,30 @@ var result = invoice.Map()
     .To<InvoiceDto>();
 ```
 
-**MapIfElse Özellikleri:**
-- İlk koşul sağlanırsa, diğer koşullar kontrol edilmez
-- If-else if-else mantığında çalışır
-- Öncelik sırasına göre mapping yapar
-- Birden fazla koşul parametresi alabilir
+**MapIfElse Features:**
+- If the first condition is met, other conditions are not checked
+- Works with if-else if-else logic
+- Maps according to priority order
+- Can take multiple condition parameters
 
-**Kullanım Senaryoları:**
-- VAT oranı önceliği (Vat18 > Vat20 > Vat8)
-- İletişim bilgisi önceliği (Email > Phone > Name)
-- Ürün bilgisi önceliği (Description > Category > Brand)
-- İndirim sebebi önceliği (DiscountCode > PremiumCustomer > Loyalty)
+**Usage Scenarios:**
+- VAT rate priority (Vat18 > Vat20 > Vat8)
+- Contact information priority (Email > Phone > Name)
+- Product information priority (Description > Category > Brand)
+- Discount reason priority (DiscountCode > PremiumCustomer > Loyalty)
 
-### Asenkron Mapping
+### Async Mapping
 
-Büyük veri setleri için performans avantajı sağlayan asenkron liste eşleme. Progress reporting ile ilerleme takibi yapabilirsiniz.
+Asynchronous list mapping that provides performance advantages for large datasets. Progress tracking with progress reporting.
 
 ```csharp
 var personList = GetPersonList();
 var results = await AsyncMapper.MapAsync<Person, PersonDto>(personList);
 
-// Progress reporting ile
+// With progress reporting
 var progress = new Progress<AsyncMapper.MappingProgress>(p =>
 {
-    Console.WriteLine($"İlerleme: %{p.Percentage:F1}");
+    Console.WriteLine($"Progress: {p.Percentage:F1}%");
 });
 
 var results = await AsyncMapper.MapAsync<Person, PersonDto>(personList, progress);
@@ -143,7 +175,7 @@ var results = await AsyncMapper.MapAsync<Person, PersonDto>(personList, progress
 
 ### Diff Mapping
 
-İki farklı nesne arasındaki özellik farklarını otomatik tespit edip detaylı bir rapor sunar. Nesne karşılaştırma ve değişiklik analizi için kullanılır.
+Automatically detects property differences between two different objects and provides a detailed report. Used for object comparison and change analysis.
 
 ```csharp
 var original = new Person { Id = 1, FirstName = "John", LastName = "Doe" };
@@ -152,20 +184,20 @@ var updated = new Person { Id = 1, FirstName = "Jane", LastName = "Smith" };
 var diff = DiffMapper.FindDifferences(original, updated);
 if (diff.HasDifferences)
 {
-    Console.WriteLine($"Fark sayısı: {diff.Differences.Count}");
-    Console.WriteLine($"Benzerlik: %{diff.SimilarityPercentage}");
+    Console.WriteLine($"Difference count: {diff.Differences.Count}");
+    Console.WriteLine($"Similarity: {diff.SimilarityPercentage}%");
 }
 ```
 
 ### Snapshot & Restore
 
-Nesnelerin anlık durumunu kaydedip daha sonra ihtiyaç duyulduğunda geri yükleyebilme yeteneği. Undo/redo işlemleri, geçici durum saklama ve nesne kopyalama için kullanılır.
+Ability to save the current state of objects and restore them later when needed. Used for undo/redo operations, temporary state storage, and object copying.
 
 ```csharp
-// Snapshot oluştur
+// Create snapshot
 var snapshot = AsyncMapper.CreateSnapshot(person);
 
-// Snapshot'tan geri yükle
+// Restore from snapshot
 var restored = AsyncMapper.RestoreFromSnapshot<Person>(snapshot.Id);
 
 // Deep copy snapshot
@@ -174,7 +206,7 @@ var deepSnapshot = AsyncMapper.CreateDeepCopySnapshot(person);
 
 ### Mapping Validator
 
-Mevcut mapping tanımlarının doğruluğunu ve tutarlılığını önceden kontrol ederek geliştirici hatalarını erken yakalar. Compile-time validation ile runtime hatalarını önler.
+Checks the correctness and consistency of existing mapping definitions in advance to catch developer errors early. Prevents runtime errors with compile-time validation.
 
 ```csharp
 var result = MappingValidator.ValidateMapping<Person, PersonDto>();
@@ -183,43 +215,43 @@ if (!result.IsValid)
 {
     foreach (var error in result.Errors)
     {
-        Console.WriteLine($"Hata: {error.Message}");
+        Console.WriteLine($"Error: {error.Message}");
     }
 }
 ```
 
 ### Partial Merge
 
-Mevcut nesneleri kısmi veya farklı merge stratejileri ile güncelleyebilme. Sadece belirli alanları güncelleme veya koşullu merge işlemleri için kullanılır.
+Ability to update existing objects with partial or different merge strategies. Used for updating only specific fields or conditional merge operations.
 
 ```csharp
 var target = new Person { Id = 1, FirstName = "John" };
 var source = new Person { Id = 1, FirstName = "Jane", LastName = "Smith" };
 
-// Sadece belirli alanları güncelle
+// Update only specific fields
 var result = MergeMapper.PartialMerge(target, source, "FirstName", "LastName");
 
-// Koşullu merge
+// Conditional merge
 var result = MergeMapper.ConditionalMerge(target, source, 
     (sourceValue, targetValue) => sourceValue != null);
 ```
 
-## 📊 Performans Karşılaştırması
+## 📊 Performance Comparison
 
-### 🏆 FastMapper vs AutoMapper vs Mapster Benchmark Sonuçları
+### 🏆 FastMapper vs AutoMapper vs Mapster Benchmark Results
 
-| Test Senaryosu | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
+| Test Scenario | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
 |----------------|------------|------------|---------|------------------------|----------------------|
-| **Simple Mapping** | 285.27 ns | 58.10 ns | 29.77 ns | **4.91x daha yavaş** | **9.58x daha yavaş** |
-| **Simple Existing Object** | 311.00 ns | 47.06 ns | 28.32 ns | **6.61x daha yavaş** | **10.98x daha yavaş** |
-| **Complex Mapping** | 330.12 ns | 273.17 ns | 257.15 ns | **1.21x daha hızlı** | **1.28x daha hızlı** |
-| **Complex Existing Object** | 344.32 ns | 210.71 ns | 265.65 ns | **1.63x daha yavaş** | **1.30x daha hızlı** |
-| **Bulk Mapping (1000 items)** | 77.28 µs | 235.75 µs | 277.48 µs | **3.05x daha hızlı** | **3.59x daha hızlı** |
-| **Custom Mapping** | 326.40 ns | 268.85 ns | 267.57 ns | **1.21x daha hızlı** | **1.22x daha hızlı** |
-| **Employee Mapping** | 20.50 µs | 88.01 µs | 85.60 µs | **4.29x daha hızlı** | **4.17x daha hızlı** |
-| **Performance Test (1000 iterations)** | 315.19 µs | 274.13 µs | 264.47 µs | **1.15x daha hızlı** | **1.19x daha hızlı** |
+| **Simple Mapping** | 285.27 ns | 58.10 ns | 29.77 ns | **4.91x slower** | **9.58x slower** |
+| **Simple Existing Object** | 311.00 ns | 47.06 ns | 28.32 ns | **6.61x slower** | **10.98x slower** |
+| **Complex Mapping** | 330.12 ns | 273.17 ns | 257.15 ns | **1.21x faster** | **1.28x faster** |
+| **Complex Existing Object** | 344.32 ns | 210.71 ns | 265.65 ns | **1.63x slower** | **1.30x faster** |
+| **Bulk Mapping (1000 items)** | 77.28 µs | 235.75 µs | 277.48 µs | **3.05x faster** | **3.59x faster** |
+| **Custom Mapping** | 326.40 ns | 268.85 ns | 267.57 ns | **1.21x faster** | **1.22x faster** |
+| **Employee Mapping** | 20.50 µs | 88.01 µs | 85.60 µs | **4.29x faster** | **4.17x faster** |
+| **Performance Test (1000 iterations)** | 315.19 µs | 274.13 µs | 264.47 µs | **1.15x faster** | **1.19x faster** |
 
-### 📈 Detaylı Benchmark Sonuçları
+### 📈 Detailed Benchmark Results
 
 | Method | Mean | Error | StdDev | Median | Ratio | Rank | Allocated | Alloc Ratio |
 |--------|------|-------|--------|--------|-------|------|-----------|-------------|
@@ -252,28 +284,28 @@ var result = MergeMapper.ConditionalMerge(target, source,
 | AutoMapper_BulkMapping | 235.755 μs | 5.755 μs | 16.326 μs | 233.127 μs | 29,380.64 | 20 | 592,520 B | 14,813.00 |
 | Mapster_BulkMapping | 277.480 μs | 5.396 μs | 6.214 μs | 278.098 μs | 34,671.30 | 22 | 615,976 B | 15,399.40 |
 
-### 🧠 Memory Karşılaştırması
+### 🧠 Memory Comparison
 
-| Senaryo | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
+| Scenario | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
 |---------|------------|------------|---------|------------------------|----------------------|
 | **Simple Mapping** | 296 B | 40 B | 40 B | **+640%** | **+640%** |
-| **Complex Mapping** | 376 B | 576 B | 616 B | **+35% tasarruf** | **+39% tasarruf** |
-| **Bulk Mapping** | 144,792 B | 592,520 B | 615,976 B | **+309% tasarruf** | **+325% tasarruf** |
-| **Employee Mapping** | 52,576 B | 132,304 B | 127,976 B | **+152% tasarruf** | **+143% tasarruf** |
+| **Complex Mapping** | 376 B | 576 B | 616 B | **+35% savings** | **+39% savings** |
+| **Bulk Mapping** | 144,792 B | 592,520 B | 615,976 B | **+309% savings** | **+325% savings** |
+| **Employee Mapping** | 52,576 B | 132,304 B | 127,976 B | **+152% savings** | **+143% savings** |
 
-### 🎯 Önemli Bulgular
+### 🎯 Key Findings
 
-- ✅ **Bulk Mapping**: FastMapper, AutoMapper'dan **3.05x** ve Mapster'dan **3.59x** daha hızlı
-- ✅ **Employee Mapping**: FastMapper, AutoMapper'dan **4.29x** ve Mapster'dan **4.17x** daha hızlı
-- ✅ **Complex Mapping**: FastMapper, AutoMapper'dan **1.21x** ve Mapster'dan **1.28x** daha hızlı
-- ✅ **Memory Optimizasyonu**: Karmaşık mapping'lerde %35-39 daha az memory
-- ✅ **Büyük Veri Setleri**: Bulk mapping'de %300+ memory tasarrufu
+- ✅ **Bulk Mapping**: FastMapper is **3.05x** faster than AutoMapper and **3.59x** faster than Mapster
+- ✅ **Employee Mapping**: FastMapper is **4.29x** faster than AutoMapper and **4.17x** faster than Mapster
+- ✅ **Complex Mapping**: FastMapper is **1.21x** faster than AutoMapper and **1.28x** faster than Mapster
+- ✅ **Memory Optimization**: 35-39% less memory in complex mappings
+- ✅ **Large Datasets**: 300%+ memory savings in bulk mapping
 
-### 📊 Görsel Analiz
+### 📊 Visual Analysis
 
 ```mermaid
 graph TD
-    A[Benchmark Sonuçları] --> B[Simple Mapping]
+    A[Benchmark Results] --> B[Simple Mapping]
     A --> C[Complex Mapping]
     A --> D[Bulk Mapping]
     A --> E[Employee Mapping]
@@ -301,67 +333,67 @@ graph TD
     style B3 fill:#FFB6C1
 ```
 
-## 🔧 Gelişmiş Özellikler
+## 🔧 Advanced Features
 
-### Diagnostic ve Profiling
+### Diagnostic and Profiling
 
 ```csharp
-// Performance profili başlat
+// Start performance profile
 var profile = DiagnosticMapper.StartPerformanceProfile("UserMapping");
 
-// Mapping işlemleri...
+// Mapping operations...
 
 var result = DiagnosticMapper.EndPerformanceProfile("UserMapping");
-Console.WriteLine($"Toplam mapping: {result.TotalMappings}");
-Console.WriteLine($"Ortalama süre: {result.AverageMappingTime}");
+Console.WriteLine($"Total mappings: {result.TotalMappings}");
+Console.WriteLine($"Average time: {result.AverageMappingTime}");
 
-// Diagnostic raporu
+// Diagnostic report
 var report = DiagnosticMapper.GenerateDiagnosticReport();
-Console.WriteLine($"Başarı oranı: %{report.Summary.SuccessRate:P1}");
+Console.WriteLine($"Success rate: {report.Summary.SuccessRate:P1}%");
 ```
 
 ### Custom Mapping
 
-Özel mapping tanımla ve type converter ekleyerek farklı veri tipleri arasında otomatik dönüşüm yapabilirsiniz.
+Define custom mappings and add type converters to automatically convert between different data types.
 
 ```csharp
-// Özel mapping tanımla
+// Define custom mapping
 MapperExtensions.AddCustomMapping<Person, PersonDto>(
     "FullName",
     person => $"{person.FirstName} {person.LastName}"
 );
 
-// Type converter ekle - string'den int'e otomatik dönüşüm
+// Add type converter - automatic conversion from string to int
 MapperExtensions.AddTypeConverter<string, int>(int.Parse);
 
-// DateTime'dan string'e dönüşüm
+// DateTime to string conversion
 MapperExtensions.AddTypeConverter<DateTime, string>(dt => dt.ToString("dd.MM.yyyy"));
 
-// decimal'dan string'e para birimi formatı
+// decimal to string currency format
 MapperExtensions.AddTypeConverter<decimal, string>(price => $"₺{price:F2}");
 ```
 
-**Type Converter Nedir?**
-- Farklı veri tipleri arasında otomatik dönüşüm sağlar
-- `AddTypeConverter<TSource, TTarget>(Func<TSource, TTarget> converter)` formatında kullanılır
-- Örnek: `AddTypeConverter<string, int>(int.Parse)` ile string property'ler otomatik olarak int'e dönüştürülür
-- Mapping sırasında kaynak ve hedef tipler uyuşmazsa, tanımlı converter kullanılır
+**What is Type Converter?**
+- Provides automatic conversion between different data types
+- Used in `AddTypeConverter<TSource, TTarget>(Func<TSource, TTarget> converter)` format
+- Example: `AddTypeConverter<string, int>(int.Parse)` automatically converts string properties to int
+- When source and target types don't match during mapping, the defined converter is used
 
-### JSON/String → Enum ve Enum Listesi
+### JSON/String → Enum and Enum List
 
-Aşağıdaki dönüşümler ekstra konfigürasyon olmadan otomatik gerçekleştirilir (case-insensitive, basit normalizasyon ile):
+The following conversions are performed automatically without extra configuration (case-insensitive, with simple normalization):
 
 ```csharp
 public enum StatusEnum { Success, Pending, Failed }
 
-// 1) String → Enum (ör. "success" → StatusEnum.Success)
+// 1) String → Enum (e.g. "success" → StatusEnum.Success)
 public class ApiStatusSource { public string Status { get; set; } }
 public class ApiStatusTarget { public StatusEnum Status { get; set; } }
 
 var s1 = new ApiStatusSource { Status = "success" };
 var t1 = s1.FastMapTo<ApiStatusTarget>(); // t1.Status == StatusEnum.Success
 
-// 2) CSV/JSON string → List<Enum> (ör. "success,pending" veya "[\"success\",\"failed\"]")
+// 2) CSV/JSON string → List<Enum> (e.g. "success,pending" or "[\"success\",\"failed\"]")
 public class ApiStatusListSource { public string Statuses { get; set; } }
 public class ApiStatusListTarget { public List<StatusEnum> Statuses { get; set; } }
 
@@ -376,9 +408,9 @@ var s3 = new ApiStatusArraySource { Statuses = Newtonsoft.Json.Linq.JArray.Parse
 var t3 = s3.FastMapTo<ApiStatusArrayTarget>(); // Success, Failed
 ```
 
-> Not: JArray örneği için `Newtonsoft.Json` gerekir.
+> Note: `Newtonsoft.Json` is required for JArray example.
 
-### Merge Stratejileri
+### Merge Strategies
 
 ```csharp
 // Replace strategy
@@ -387,47 +419,47 @@ var result = MergeMapper.Merge(target, source);
 // Deep merge
 var result = MergeMapper.DeepMerge(target, source, maxDepth: 3);
 
-// Append merge (koleksiyonlar için)
+// Append merge (for collections)
 var result = MergeMapper.AppendMerge(target, source);
 ```
 
-## 🏗️ Mimari
+## 🏗️ Architecture
 
-FastMapper, aşağıdaki temel bileşenlerden oluşur:
+FastMapper consists of the following core components:
 
-- **MapperExtensions**: Temel mapping API'leri
-- **FluentMapper**: Zincirlenebilir fluent API
-- **AsyncMapper**: Asenkron mapping ve snapshot
-- **DiffMapper**: Nesne farkları analizi
-- **MappingValidator**: Mapping doğrulama
-- **DiagnosticMapper**: Performans analizi
-- **MergeMapper**: Nesne birleştirme
+- **MapperExtensions**: Core mapping APIs
+- **FluentMapper**: Chainable fluent API
+- **AsyncMapper**: Async mapping and snapshot
+- **DiffMapper**: Object differences analysis
+- **MappingValidator**: Mapping validation
+- **DiagnosticMapper**: Performance analysis
+- **MergeMapper**: Object merging
 
-## 📋 Gereksinimler
+## 📋 Requirements
 
 - .NET Standard 2.0+
-- .NET 6.0+ (önerilen)
-- Newtonsoft.Json (snapshot özelliği için)
+- .NET 6.0+ (recommended)
+- Newtonsoft.Json (for snapshot feature)
 
-## 🤝 Katkıda Bulunma
+## 🤝 Contributing
 
-1. Fork yapın
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit yapın (`git commit -m 'Add amazing feature'`)
-4. Push yapın (`git push origin feature/amazing-feature`)
-5. Pull Request oluşturun
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Create a Pull Request
 
-## 📄 Lisans
+## 📄 License
 
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
-## 🙏 Teşekkürler
+## 🙏 Acknowledgments
 
-- [AutoMapper](https://github.com/AutoMapper/AutoMapper) - İlham kaynağı
-- [Mapster](https://github.com/MapsterMapper/Mapster) - Performans karşılaştırması
+- [AutoMapper](https://github.com/AutoMapper/AutoMapper) - Inspiration
+- [Mapster](https://github.com/MapsterMapper/Mapster) - Performance comparison
 - [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet) - Benchmark framework
 
-## 📞 İletişim
+## 📞 Contact
 
 - **GitHub**: [mennansevim/fast-mapper](https://github.com/mennansevim/fast-mapper)
 - **NuGet**: [FastMapper](https://www.nuget.org/packages/FastMapper)
@@ -435,4 +467,4 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 
 ---
 
-**FastMapper** ile nesne eşleme işlemlerinizi hızlandırın! 🚀
+**Speed up your object mapping operations with FastMapper!** 🚀

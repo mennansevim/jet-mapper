@@ -1,44 +1,44 @@
-# FastMapper Benchmark Sonuçları
+# FastMapper Benchmark Results
 
-Bu doküman, FastMapper'ın AutoMapper ile karşılaştırmalı performansını ve gelişmiş özelliklerinin hız etkisini gösterir.
+This document shows FastMapper's comparative performance with AutoMapper and the impact of advanced features on speed.
 
-## 🚦 Test Edilen Senaryolar
+## 🚦 Test Scenarios
 
-1. **Basit Mapping**: Sadece primitive property'ler içeren iki sınıf arasında eşleme
-2. **Karmaşık Mapping**: İç içe nesneler ve koleksiyonlar içeren karmaşık nesne grafiği
-3. **Toplu Mapping**: Büyük koleksiyonlarda (ör. 1000+ nesne) toplu eşleme
-4. **Özellik Bazlı Testler**:
-   - Custom mapping (lambda ile)
-   - Type converter kullanımı
+1. **Simple Mapping**: Mapping between two classes containing only primitive properties
+2. **Complex Mapping**: Complex object graph with nested objects and collections
+3. **Bulk Mapping**: Bulk mapping on large collections (e.g. 1000+ objects)
+4. **Feature-Based Tests**:
+   - Custom mapping (with lambda)
+   - Type converter usage
    - Property/enum caching
-   - Var olan nesneye mapping (değişmeyen alanlar korunur)
-   - Combine/merge fonksiyonları
-   - Employee mapping (gerçek dünya senaryosu)
-   - Performance test (1000 iterasyon)
+   - Mapping to existing objects (preserving unchanged fields)
+   - Combine/merge functions
+   - Employee mapping (real-world scenario)
+   - Performance test (1000 iterations)
 
-## ⚡ Benchmark Nasıl Çalıştırılır?
+## ⚡ How to Run Benchmarks?
 
 ```bash
 cd benchmarks/FastMapper.Benchmarks
-# Release modunda çalıştırın:
+# Run in Release mode:
 dotnet run -c Release
 ```
 
-## 📊 Güncel Benchmark Sonuçları
+## 📊 Current Benchmark Results
 
-### 🏆 FastMapper vs AutoMapper vs Mapster Karşılaştırması
+### 🏆 FastMapper vs AutoMapper vs Mapster Comparison
 
-| Test Senaryosu | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
+| Test Scenario | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
 |----------------|------------|------------|---------|------------------------|----------------------|
-| **Simple Existing Object** | 33.88 ns | 43.36 ns | 28.10 ns | **1.28x daha hızlı** | **1.21x daha yavaş** |
-| **Complex Mapping** | 93.99 ns | 255.45 ns | 258.36 ns | **2.72x daha hızlı** | **2.75x daha hızlı** |
-| **Complex Existing Object** | 81.26 ns | 205.97 ns | 256.16 ns | **2.53x daha hızlı** | **3.15x daha hızlı** |
-| **Bulk Mapping (1000 items)** | 73.11 µs | 227.65 µs | 261.16 µs | **3.12x daha hızlı** | **3.57x daha hızlı** |
-| **Custom Mapping** | 96.30 ns | 260.16 ns | 257.92 ns | **2.70x daha hızlı** | **2.68x daha hızlı** |
-| **Employee Mapping** | 18.59 µs | 83.49 µs | 87.86 µs | **4.49x daha hızlı** | **4.73x daha hızlı** |
-| **Performance Test (1000 iterations)** | 94.53 µs | 256.57 µs | 256.24 µs | **2.71x daha hızlı** | **2.71x daha hızlı** |
+| **Simple Existing Object** | 33.88 ns | 43.36 ns | 28.10 ns | **1.28x faster** | **1.21x slower** |
+| **Complex Mapping** | 93.99 ns | 255.45 ns | 258.36 ns | **2.72x faster** | **2.75x faster** |
+| **Complex Existing Object** | 81.26 ns | 205.97 ns | 256.16 ns | **2.53x faster** | **3.15x faster** |
+| **Bulk Mapping (1000 items)** | 73.11 µs | 227.65 µs | 261.16 µs | **3.12x faster** | **3.57x faster** |
+| **Custom Mapping** | 96.30 ns | 260.16 ns | 257.92 ns | **2.70x faster** | **2.68x faster** |
+| **Employee Mapping** | 18.59 µs | 83.49 µs | 87.86 µs | **4.49x faster** | **4.73x faster** |
+| **Performance Test (1000 iterations)** | 94.53 µs | 256.57 µs | 256.24 µs | **2.71x faster** | **2.71x faster** |
 
-### 📈 Detaylı Performans Karşılaştırması
+### 📈 Detailed Performance Comparison
 
 | Method | Mean | Error | StdDev | Median | Ratio | Rank | Allocated | Alloc Ratio |
 |--------|------|-------|--------|--------|-------|------|-----------|-------------|
@@ -65,22 +65,22 @@ dotnet run -c Release
 | Mapster_PerformanceTest | 246.755 μs | 1.1914 μs | 0.9949 μs | 246.755 μs | 36,603.41 | 16 | 616,000 B | 15,400.00 |
 | AutoMapper_PerformanceTest | 253.405 μs | 1.0525 μs | 0.8788 μs | 253.405 μs | 37,590.55 | 17 | 576,000 B | 14,400.00 |
 
-### 🧠 Memory Karşılaştırması
+### 🧠 Memory Comparison
 
-| Senaryo | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
+| Scenario | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
 |---------|------------|------------|---------|------------------------|----------------------|
 | **Simple Existing Object** | 96 B | 40 B | 40 B | **+140%** | **+140%** |
-| **Complex Mapping** | 216 B | 576 B | 616 B | **+167% tasarruf** | **+185% tasarruf** |
-| **Bulk Mapping** | 136,760 B | 592,520 B | 615,976 B | **+333% tasarruf** | **+350% tasarruf** |
-| **Employee Mapping** | 48,544 B | 132,304 B | 127,976 B | **+173% tasarruf** | **+164% tasarruf** |
+| **Complex Mapping** | 216 B | 576 B | 616 B | **+167% savings** | **+185% savings** |
+| **Bulk Mapping** | 136,760 B | 592,520 B | 615,976 B | **+333% savings** | **+350% savings** |
+| **Employee Mapping** | 48,544 B | 132,304 B | 127,976 B | **+173% savings** | **+164% savings** |
 
-## 📊 Görsel Analiz
+## 📊 Visual Analysis
 
-### 🏆 Performans Grafiği
+### 🏆 Performance Graph
 
 ```mermaid
 graph TD
-    A[Benchmark Sonuçları] --> B[Simple Mapping]
+    A[Benchmark Results] --> B[Simple Mapping]
     A --> C[Complex Mapping]
     A --> D[Bulk Mapping]
     A --> E[Employee Mapping]
@@ -103,52 +103,52 @@ graph TD
     style B1 fill:#90EE90
 ```
 
-### 📈 Hız Karşılaştırması
+### 📈 Speed Comparison
 
-| Test | FastMapper | AutoMapper | Kazanç |
+| Test | FastMapper | AutoMapper | Gain |
 |------|------------|------------|--------|
 | Simple | 53.19 ns | 53.58 ns | 1.01x |
 | Complex | 93.05 ns | 255.43 ns | **2.75x** |
 | Bulk | 78.74 μs | 236.77 μs | **3.01x** |
 | Employee | 21.80 μs | 90.34 μs | **4.14x** |
 
-## 🎯 Önemli Bulgular
+## 🎯 Key Findings
 
-### ✅ **Performans Analizi**
-- **Employee Mapping**: FastMapper, AutoMapper'dan **4.49x** ve Mapster'dan **4.73x** daha hızlı
-- **Bulk Mapping**: FastMapper, AutoMapper'dan **3.12x** ve Mapster'dan **3.57x** daha hızlı
-- **Complex Mapping**: FastMapper, AutoMapper'dan **2.72x** ve Mapster'dan **2.75x** daha hızlı
-- **Simple Existing Object**: FastMapper, AutoMapper'dan **1.28x** daha hızlı ama Mapster'dan **1.21x** daha yavaş
+### ✅ **Performance Analysis**
+- **Employee Mapping**: FastMapper is **4.49x** faster than AutoMapper and **4.73x** faster than Mapster
+- **Bulk Mapping**: FastMapper is **3.12x** faster than AutoMapper and **3.57x** faster than Mapster
+- **Complex Mapping**: FastMapper is **2.72x** faster than AutoMapper and **2.75x** faster than Mapster
+- **Simple Existing Object**: FastMapper is **1.28x** faster than AutoMapper but **1.21x** slower than Mapster
 
-### ⚡ **Memory Optimizasyonu**
-- **Complex Mapping**: FastMapper, AutoMapper'dan **%167** ve Mapster'dan **%185** daha az memory kullanıyor
-- **Bulk Mapping**: FastMapper, AutoMapper'dan **%333** ve Mapster'dan **%350** daha az memory kullanıyor
-- **Employee Mapping**: FastMapper, AutoMapper'dan **%173** ve Mapster'dan **%164** daha az memory kullanıyor
+### ⚡ **Memory Optimization**
+- **Complex Mapping**: FastMapper uses **167%** less memory than AutoMapper and **185%** less than Mapster
+- **Bulk Mapping**: FastMapper uses **333%** less memory than AutoMapper and **350%** less than Mapster
+- **Employee Mapping**: FastMapper uses **173%** less memory than AutoMapper and **164%** less than Mapster
 
-### 🔧 **Setup Overhead Analizi**
-- **Simple Mapping**: FastMapper'ın setup overhead'i azaltıldı ama hala Mapster'dan yavaş
-- **Complex Mapping**: FastMapper'ın optimizasyonları karmaşık senaryolarda büyük avantaj sağlıyor
-- **Type Safety**: Enhanced type compatibility kontrolü ile runtime hataları önlendi
+### 🔧 **Setup Overhead Analysis**
+- **Simple Mapping**: FastMapper's setup overhead reduced but still slower than Mapster
+- **Complex Mapping**: FastMapper's optimizations provide significant advantage in complex scenarios
+- **Type Safety**: Enhanced type compatibility checking prevents runtime errors
 
-## 🔬 Analiz ve Yorum
+## 🔬 Analysis and Commentary
 
-- **Employee Mapping**: FastMapper, AutoMapper'dan **4.49x** ve Mapster'dan **4.73x** daha hızlı - en büyük performans kazancı
-- **Bulk Mapping**: FastMapper, AutoMapper'dan **3.12x** ve Mapster'dan **3.57x** daha hızlı - büyük veri setlerinde üstün
-- **Complex Mapping**: FastMapper'ın expression tree optimizasyonu devreye giriyor ve **2.72x** hızlanma sağlıyor
-- **Simple Existing Object**: FastMapper, AutoMapper'dan **1.28x** daha hızlı ama Mapster'dan **1.21x** daha yavaş
-- **Memory Kullanımı**: FastMapper karmaşık senaryolarda çok daha az memory kullanıyor (%167-350 tasarruf)
-- **Type Safety**: Enhanced type compatibility kontrolü ile runtime hataları önlendi
+- **Employee Mapping**: FastMapper is **4.49x** faster than AutoMapper and **4.73x** faster than Mapster - biggest performance gain
+- **Bulk Mapping**: FastMapper is **3.12x** faster than AutoMapper and **3.57x** faster than Mapster - superior in large datasets
+- **Complex Mapping**: FastMapper's expression tree optimization kicks in and provides **2.72x** speedup
+- **Simple Existing Object**: FastMapper is **1.28x** faster than AutoMapper but **1.21x** slower than Mapster
+- **Memory Usage**: FastMapper uses much less memory in complex scenarios (167-350% savings)
+- **Type Safety**: Enhanced type compatibility checking prevents runtime errors
 
-## 🏁 Sonuç
+## 🏁 Conclusion
 
-**FastMapper, karmaşık mapping'lerde 2-5x daha hızlı ve daha az memory kullanıyor!**
+**FastMapper is 2-5x faster and uses less memory in complex mappings!**
 
-- ✅ **Employee Mapping Lideri** - AutoMapper'dan 4.49x, Mapster'dan 4.73x daha hızlı
-- ✅ **Bulk Mapping Üstünlüğü** - AutoMapper'dan 3.12x, Mapster'dan 3.57x daha hızlı
-- ✅ **Complex Mapping Lideri** - AutoMapper'dan 2.72x, Mapster'dan 2.75x daha hızlı
-- ✅ **Memory Optimizasyonu** - Karmaşık senaryolarda %167-350 memory tasarrufu
-- ✅ **Type Safety** - Enhanced type compatibility kontrolü ile runtime hataları önlendi
+- ✅ **Employee Mapping Leader** - 4.49x faster than AutoMapper, 4.73x faster than Mapster
+- ✅ **Bulk Mapping Superiority** - 3.12x faster than AutoMapper, 3.57x faster than Mapster
+- ✅ **Complex Mapping Leader** - 2.72x faster than AutoMapper, 2.75x faster than Mapster
+- ✅ **Memory Optimization** - 167-350% memory savings in complex scenarios
+- ✅ **Type Safety** - Enhanced type compatibility checking prevents runtime errors
 
-FastMapper, özellikle karmaşık nesne grafikleri ve büyük veri setleriyle çalışırken ciddi performans avantajı sağlıyor. Expression tree optimizasyonu ve gelişmiş caching mekanizmaları sayesinde hem hız hem de memory açısından üstün sonuçlar veriyor.
+FastMapper provides serious performance advantages especially when working with complex object graphs and large datasets. Thanks to expression tree optimization and advanced caching mechanisms, it delivers superior results in both speed and memory.
 
-> **Not:** Sonuçlar donanım ve .NET sürümüne göre değişebilir. Kendi makinenizde güncel sonuçlar için benchmark'ı çalıştırın. 
+> **Note:** Results may vary depending on hardware and .NET version. Run benchmarks on your own machine for current results.

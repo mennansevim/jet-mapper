@@ -6,6 +6,6 @@
 /Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/obj/Debug/netstandard2.0/FastMapper.AssemblyInfoInputs.cache
 /Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/obj/Debug/netstandard2.0/FastMapper.AssemblyInfo.cs
 /Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/obj/Debug/netstandard2.0/FastMapper.csproj.CoreCompileInputs.cache
+/Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/obj/Debug/netstandard2.0/FastMapper.sourcelink.json
 /Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/obj/Debug/netstandard2.0/FastMapper.dll
 /Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/obj/Debug/netstandard2.0/FastMapper.pdb
-/Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/obj/Debug/netstandard2.0/FastMapper.sourcelink.json
