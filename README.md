@@ -1,13 +1,13 @@
-# 🚀 FastMapper - Ultra-Performance Object Mapper
+# 🚀 FastMapper — Simple. Fast. Powerful.
 
-FastMapper is an ultra-fast object mapping library developed for .NET. It offers faster performance than AutoMapper and Mapster.
+Minimal, intuitive and ultra-fast object mapper for .NET.
 
 ## ⚡ Performance Comparison
 
 ### 🏆 FastMapper vs AutoMapper vs Mapster
 
 | Test Scenario | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
-|----------------|------------|------------|---------|------------------------|----------------------|
+|----------------|------------|------------|---------|--------------------------|------------------------|
 | **Complex Mapping** | 94.06 ns | 259.17 ns | 250.89 ns | **2.76x faster** | **2.67x faster** |
 | **Complex Existing Object** | 79.26 ns | 206.50 ns | 256.77 ns | **2.60x faster** | **3.24x faster** |
 | **Bulk Mapping** | 72.71 µs | 215.71 µs | 256.31 µs | **2.97x faster** | **3.53x faster** |
@@ -16,7 +16,7 @@ FastMapper is an ultra-fast object mapping library developed for .NET. It offers
 ### 🧠 Memory Optimization
 
 | Scenario | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
-|---------|------------|------------|---------|------------------------|----------------------|
+|----------|------------|------------|---------|--------------------------|------------------------|
 | **Complex Mapping** | 216 B | 576 B | 616 B | **+167% savings** | **+185% savings** |
 | **Complex Existing Object** | 96 B | 104 B | 616 B | **+8% savings** | **+542% savings** |
 | **Bulk Mapping** | 136,760 B | 592,520 B | 615,976 B | **+333% savings** | **+350% savings** |
@@ -24,10 +24,10 @@ FastMapper is an ultra-fast object mapping library developed for .NET. It offers
 
 ## 🎯 Features
 
-- ⚡ **Ultra-Fast**: Maximum performance with expression tree compilation
-- 🧠 **Memory Optimized**: 500%+ memory savings in complex mappings
-- 🔒 **Type Safe**: Enhanced type compatibility checking
-- 🚀 **Zero Allocation**: Minimal memory allocation
+- ⚡ **Ultra-Fast**: Expression tree compilation for maximum performance
+- 🧠 **Memory Optimized**: 500%+ savings in complex mappings
+- 🔒 **Type Safe**: Enhanced type compatibility checks
+- 🚀 **Low Allocation**: Minimal memory usage
 - 📦 **Lightweight**: Minimal dependencies
 - 🔧 **Easy to Use**: Simple and intuitive API
 - ✨ **Fluent API**: Builder pattern for custom mappings
@@ -43,54 +43,58 @@ FastMapper is an ultra-fast object mapping library developed for .NET. It offers
 dotnet add package FastMapper
 ```
 
-## 🚀 Usage
+## 🚀 Quick Start (Minimal Examples)
 
-### Basic Mapping
 ```csharp
 using FastMapper;
 
-// Simple mapping
-var source = new SimpleSource { Name = "John", Age = 30 };
-var target = source.FastMapTo<SimpleTarget>();
+// One-liner
+var user = new User { FirstName = "Ahmet", LastName = "Yılmaz", Age = 25 };
+var dto = user.FastMapTo<UserDto>();
 
-// Complex mapping
-var complexSource = new ComplexSource { /* ... */ };
-var complexTarget = complexSource.FastMapTo<ComplexTarget>();
-
-// Mapping to existing object
-var existingTarget = new ComplexTarget();
-complexSource.FastMapTo(existingTarget);
-
-// Bulk mapping
-var sources = new List<ComplexSource> { /* ... */ };
-var targets = sources.FastMapToList<ComplexTarget>();
+// Collection
+var users = new[]
+{
+    new User { FirstName = "Ahmet", LastName = "Yılmaz", Age = 25 },
+    new User { FirstName = "Ayşe", LastName = "Demir", Age = 30 },
+    new User { FirstName = "Mehmet", LastName = "Kaya", Age = 28 }
+};
+var dtos = users.FastMapToList<User, UserDto>();
 ```
 
-### ✨ Fluent API (Builder Pattern)
+## ✨ Fluent API — Minimal
+
 ```csharp
-// Custom property mapping
-var dto = person.Builder()
-    .MapTo<PersonDto>()
-    .Set(d => d.FullName, p => $"{p.FirstName} {p.LastName}")
-    .Set(d => d.Age, p => DateTime.Now.Year - p.BirthDate.Year)
-    .Create();
-
-// Conditional mapping
-var orderDto = order.Builder()
-    .MapTo<OrderDto>()
-    .SetIf(d => d.Status, o => o.IsPaid, o => "✅ Paid")
-    .SetIf(d => d.Status, o => !o.IsPaid, o => "⏳ Pending")
-    .SetIf(d => d.Shipping, o => o.Total > 100, o => "🚚 Free Shipping")
-    .Create();
-
-// Ignore sensitive properties
-var userDto = user.Builder()
+// Set
+var setDto = user.Builder()
     .MapTo<UserDto>()
-    .Ignore(d => d.Password)
-    .Ignore(d => d.SocialSecurityNumber)
+    .Set(t => t.FullName, s => $"{s.FirstName} {s.LastName}")
     .Create();
+
+// SetIf
+var setIfDto = user.Builder()
+    .MapTo<UserDto>()
+    .SetIf(t => t.Age, s => s.Age > 0, s => s.Age)
+    .Create();
+
+// Existing object
+var existing = new UserDto { FirstName = "Old", LastName = "Value" };
+user.FastMapTo(existing);
+
+// TypeConverter (int -> string)
+MapperExtensions.AddTypeConverter<int, string>(n => n.ToString());
+var report = user.FastMapTo<ReportDto>();
+
+// Custom mapping
+MapperExtensions.AddCustomMapping<User, ReportDto>(
+    "FirstName", "DisplayName",
+    src => $"{((User)src).FirstName} {((User)src).LastName}"
+);
+var report2 = user.FastMapTo<ReportDto>();
+```
 
 // Hooks (BeforeMap/AfterMap)
+```csharp
 var result = source.Builder()
     .MapTo<Target>()
     .BeforeMap((src, dest) => Console.WriteLine("Mapping started..."))
@@ -99,29 +103,12 @@ var result = source.Builder()
     .Create();
 ```
 
-📖 **For more examples**: See [API_EXAMPLES.md](API_EXAMPLES.md)
+Tip: See `ExampleConsoleApp/Program.cs` for a runnable, minimalist demo.
 
-## 🔧 Advanced Features
+## ⚡ Performance Note
 
-### Custom Mapping
-```csharp
-MapperExtensions.AddCustomMapping<Source, Target>(
-    "SourceProperty", 
-    "TargetProperty", 
-    source => /* custom logic */
-);
-```
-
-### Type Converter
-```csharp
-MapperExtensions.AddTypeConverter<string, int>(
-    value => int.Parse(value)
-);
-```
-
-## 📊 Benchmark Results
-
-For detailed benchmark results, see [benchmarks/FastMapper.Benchmarks/README.md](benchmarks/FastMapper.Benchmarks/README.md).
+- 100,000 mappings ≈ 20–30ms on Apple M2 (.NET 6)  
+- Full results: `benchmarks/FastMapper.Benchmarks`
 
 ### 🏆 Key Findings
 
@@ -132,17 +119,17 @@ For detailed benchmark results, see [benchmarks/FastMapper.Benchmarks/README.md]
 - **Memory Efficiency**: 500%+ memory savings in complex scenarios
 - **Type Safety**: Runtime errors prevented
 
-## 🤝 Contributing
+## 🧩 Models (used in examples)
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Create a Pull Request
+```csharp
+public class User { public string FirstName { get; set; } public string LastName { get; set; } public int Age { get; set; } }
+public class UserDto { public string FirstName { get; set; } public string LastName { get; set; } public int Age { get; set; } public string FullName { get; set; } }
+public class ReportDto { public string DisplayName { get; set; } public string Age { get; set; } }
+```
 
 ## 📄 License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+MIT — see `LICENSE`
 
 ## 🙏 Acknowledgments
 
@@ -152,4 +139,4 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 
 ---
 
-**FastMapper - Ultra-Performance Object Mapper** 🚀
+FastMapper — Simple. Fast. Powerful. 🚀

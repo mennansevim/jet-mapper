@@ -151,6 +151,18 @@ namespace FastMapper
         }
 
         /// <summary>
+        /// ULTRA-FAST collection mapping - Generic overload
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static List<TTarget> FastMapToList<TSource, TTarget>(this IEnumerable<TSource> sources) 
+            where TTarget : new()
+        {
+            if (sources == null) return new List<TTarget>();
+            
+            return sources.Cast<object>().FastMapToList<TTarget>();
+        }
+
+        /// <summary>
         /// ULTRA-FAST collection mapping
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

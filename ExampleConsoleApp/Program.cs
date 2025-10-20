@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using FastMapper;
 
 namespace ExampleConsoleApp
@@ -7,132 +8,138 @@ namespace ExampleConsoleApp
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("🚀 FastMapper - Builder Pattern API Örneği");
-            Console.WriteLine("===========================================\n");
-
-            // Test verisi oluştur
-            var sourcePerson = new SourcePerson
+            Console.Clear();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("       ⚡ FastMapper");
+            Console.WriteLine();
+            Console.WriteLine("       Basit. Hızlı. Güçlü.");
+            Console.WriteLine();
+            Console.WriteLine();
+            
+            // Tek Satır
+            Console.WriteLine("  ────────────────────────────────────────");
+            Console.WriteLine();
+            Console.WriteLine("  Tek Satır");
+            Console.WriteLine();
+            
+            var user = new User { FirstName = "Ahmet", LastName = "Yılmaz", Age = 25 };
+            var dto = user.FastMapTo<UserDto>();
+            
+            Console.WriteLine($"  {dto.FirstName} {dto.LastName}, {dto.Age} yaş");
+            Console.WriteLine();
+            
+            // Koleksiyonlar
+            Console.WriteLine("  ────────────────────────────────────────");
+            Console.WriteLine();
+            Console.WriteLine("  Koleksiyonlar");
+            Console.WriteLine();
+            
+            var users = new[] 
             {
-                Id = 123,
-                FirstName = "Ahmet",
-                LastName = "Yılmaz",
-                BirthDate = new DateTime(1990, 5, 15),
-                IsActive = true,
-                Email = "ahmet.yilmaz@email.com",
-                PhoneNumber = "+90 555 123 45 67",
-                Address = new SourceAddress
-                {
-                    Street = "Atatürk Caddesi",
-                    City = "İstanbul",
-                    Country = "Türkiye",
-                    PostalCode = "34000"
-                }
+                new User { FirstName = "Ahmet", LastName = "Yılmaz", Age = 25 },
+                new User { FirstName = "Ayşe", LastName = "Demir", Age = 30 },
+                new User { FirstName = "Mehmet", LastName = "Kaya", Age = 28 }
             };
+            
+            var dtos = users.FastMapToList<User, UserDto>();
+            
+            foreach (var d in dtos)
+                Console.WriteLine($"  • {d.FirstName} {d.LastName}");
+            
+            Console.WriteLine();
+            
+            // Set / SetIf / Existing / TypeConverter / CustomMapping
+            Console.WriteLine("  ────────────────────────────────────────");
+            Console.WriteLine();
+            Console.WriteLine("  Özellikler");
+            Console.WriteLine();
 
-            Console.WriteLine("📝 Kaynak Veri:");
-            Console.WriteLine($"ID: {sourcePerson.Id}");
-            Console.WriteLine($"Ad: {sourcePerson.FirstName}");
-            Console.WriteLine($"Soyad: {sourcePerson.LastName}");
-            Console.WriteLine($"Doğum Tarihi: {sourcePerson.BirthDate:dd.MM.yyyy}");
-            Console.WriteLine($"Aktif: {sourcePerson.IsActive}");
-            Console.WriteLine($"E-posta: {sourcePerson.Email}");
-            Console.WriteLine($"Telefon: {sourcePerson.PhoneNumber}");
-            Console.WriteLine($"Adres: {sourcePerson.Address.Street}, {sourcePerson.Address.City}");
-
-            Console.WriteLine("\n🔄 Mapping İşlemi Başlıyor...\n");
-
-            // YENİ API (Builder Pattern - Set ile değer ataması)
-            var newResult = sourcePerson.Builder()
-                .MapTo<TargetPerson>()
-                .Set(t => t.Identifier, s => s.Id)
+            // Set
+            var setDto = user.Builder()
+                .MapTo<UserDto>()
                 .Set(t => t.FullName, s => $"{s.FirstName} {s.LastName}")
-                .Set(t => t.Age, s => DateTime.Now.Year - s.BirthDate.Year)
-                .Set(t => t.Status, s => s.IsActive ? "Aktif" : "Pasif")
-                .Set(t => t.ContactInfo, s => $"{s.Email} | {s.PhoneNumber}")
-                .Set(t => t.TargetAddress, s => s.Address)
-                .Set(t => t.CreatedDateString, s => DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss"))
                 .Create();
+            Console.WriteLine($"  Set → {setDto.FullName}");
 
-            Console.WriteLine($"✅ Sonuç: {newResult.FullName} ({newResult.Age} yaşında) - {newResult.Status}");
-
-            // Koşullu Mapping Örneği
-            Console.WriteLine("\n🎯 Koşullu Mapping Örneği:");
-            var conditionalResult = sourcePerson.Builder()
-                .MapTo<TargetPerson>()
-                .Set(t => t.Identifier, s => s.Id)
-                .Set(t => t.FullName, s => $"{s.FirstName} {s.LastName}")
-                .SetIf(t => t.Status, s => s.IsActive, s => "✅ Aktif Kullanıcı")
-                .SetIf(t => t.Age, s => s.BirthDate != default(DateTime), s => DateTime.Now.Year - s.BirthDate.Year)
-                .SetIf(t => t.ContactInfo, s => !string.IsNullOrEmpty(s.Email), s => $"📧 {s.Email}")
+            // SetIf
+            var setIfDto = user.Builder()
+                .MapTo<UserDto>()
+                .SetIf(t => t.Age, s => s.Age > 0, s => s.Age)
                 .Create();
+            Console.WriteLine($"  SetIf → Age: {setIfDto.Age}");
 
-            Console.WriteLine($"✅ Koşullu Sonuç: {conditionalResult.FullName} - {conditionalResult.Status}");
+            // Existing object mapping
+            var existing = new UserDto { FirstName = "Eski", LastName = "Veri" };
+            user.FastMapTo(existing);
+            Console.WriteLine($"  Existing → {existing.FirstName} {existing.LastName}");
 
-            // Property Ignore Örneği
-            Console.WriteLine("\n🚫 Property Ignore Örneği:");
-            var ignoreResult = sourcePerson.Builder()
-                .MapTo<TargetPerson>()
-                .Set(t => t.Identifier, s => s.Id)
-                .Set(t => t.FullName, s => $"{s.FirstName} {s.LastName}")
-                .Ignore(t => t.Age)
-                .Ignore(t => t.Status)
-                .Ignore(t => t.ContactInfo)
-                .Create();
+            // TypeConverter (int -> string)
+            MapperExtensions.AddTypeConverter<int, string>(n => n.ToString());
+            var report = user.FastMapTo<ReportDto>();
+            Console.WriteLine($"  TypeConverter → Age: {report.Age}");
 
-            Console.WriteLine($"✅ Ignore Sonuç: {ignoreResult.FullName} - Age: {ignoreResult.Age}, Status: {ignoreResult.Status}");
+            // Custom mapping (FirstName -> DisplayName)
+            MapperExtensions.ClearAllCaches();
+            // Clear sonrası type converter'ı yeniden ekle
+            MapperExtensions.AddTypeConverter<int, string>(n => n.ToString());
+            MapperExtensions.AddCustomMapping<User, ReportDto>(
+                "FirstName", "DisplayName",
+                src => $"{((User)src).FirstName} {((User)src).LastName}"
+            );
+            var report2 = user.FastMapTo<ReportDto>();
+            Console.WriteLine($"  Custom → {report2.DisplayName}");
 
-            Console.WriteLine("\n🎉 Tüm örnekler başarıyla tamamlandı!");
-            Console.WriteLine("\n💡 Builder Pattern API'nin avantajları:");
-            Console.WriteLine("   • Builder() ile başlatma - basit");
-            Console.WriteLine("   • MapTo<TTarget>() ile hedef tip belirtme - bir kez");
-            Console.WriteLine("   • Set() ile property değer ataması - semantik ve açık");
-            Console.WriteLine("   • SetIf() ile koşullu atama - esnek");
-            Console.WriteLine("   • Create() ile sonlandırma - basit ve parametresiz");
-            Console.WriteLine("   • Daha temiz ve okunabilir kod");
-            Console.WriteLine("   • Type-safe: Compile-time'da tip kontrolü");
-            Console.WriteLine("   • Geriye dönük uyumluluk korunur (eski API hala çalışır)");
+            // Temizlik
+            MapperExtensions.ClearAllCustomMappings();
+
+            Console.WriteLine();
+            
+            // Performans
+            Console.WriteLine("  ────────────────────────────────────────");
+            Console.WriteLine();
+            Console.WriteLine("  Performans");
+            Console.WriteLine();
+            
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            for (int i = 0; i < 100000; i++)
+                _ = user.FastMapTo<UserDto>();
+            watch.Stop();
+            
+            Console.WriteLine($"  100,000 mapping → {watch.ElapsedMilliseconds}ms");
+            Console.WriteLine($"  Ortalama → {(watch.ElapsedMilliseconds / 100000.0):F4}ms");
+            Console.WriteLine();
+            
+            // Kapanış
+            Console.WriteLine("  ────────────────────────────────────────");
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("       Basit. Hızlı. Güçlü.");
+            Console.WriteLine();
+            Console.WriteLine("       github.com/mennan/fast-mapper");
+            Console.WriteLine();
+            Console.WriteLine();
         }
     }
-
-    // Kaynak modeller
-    public class SourcePerson
+    
+    public class User
     {
-        public int Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public DateTime BirthDate { get; set; }
-        public bool IsActive { get; set; }
-        public string Email { get; set; }
-        public string PhoneNumber { get; set; }
-        public SourceAddress Address { get; set; }
-    }
-
-    public class SourceAddress
-    {
-        public string Street { get; set; }
-        public string City { get; set; }
-        public string Country { get; set; }
-        public string PostalCode { get; set; }
-    }
-
-    // Hedef modeller
-    public class TargetPerson
-    {
-        public int Identifier { get; set; }
-        public string FullName { get; set; }
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
         public int Age { get; set; }
-        public string Status { get; set; }
-        public string ContactInfo { get; set; }
-        public TargetAddress TargetAddress { get; set; }
-        public string CreatedDateString { get; set; }
+    }
+    
+    public class UserDto
+    {
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
+        public int Age { get; set; }
+        public string FullName { get; set; } = "";
     }
 
-    public class TargetAddress
+    public class ReportDto
     {
-        public string Street { get; set; }
-        public string City { get; set; }
-        public string Country { get; set; }
-        public string PostalCode { get; set; }
+        public string DisplayName { get; set; } = "";
+        public string Age { get; set; } = ""; // int -> string converter
     }
 }
-
