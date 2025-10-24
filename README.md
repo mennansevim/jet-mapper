@@ -1,34 +1,26 @@
-# 🚀 FastMapper — Simple. Fast. Powerful.
+<p align="center">
+  <img src="src/JetMapper/public/bg.png" alt="JetMapper" width="600" />
+</p>
 
-Minimal, intuitive and ultra-fast object mapper for .NET.
+<h1 align="center">🚀 JetMapper</h1>
 
-## ⚡ Performance Comparison
+<p align="center">
+  <strong>A high-performance .NET object mapper - 2-4x faster than AutoMapper with 500%+ less memory usage.</strong>
+</p>
 
-### 🏆 FastMapper vs AutoMapper vs Mapster
+<p align="center">
+  <a href="https://www.nuget.org/packages/JetMapper"><img src="https://img.shields.io/nuget/v/JetMapper.svg" alt="NuGet"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+</p>
 
-| Test Scenario | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
-|----------------|------------|------------|---------|--------------------------|------------------------|
-| **Complex Mapping** | 94.06 ns | 259.17 ns | 250.89 ns | **2.76x faster** | **2.67x faster** |
-| **Complex Existing Object** | 79.26 ns | 206.50 ns | 256.77 ns | **2.60x faster** | **3.24x faster** |
-| **Bulk Mapping** | 72.71 µs | 215.71 µs | 256.31 µs | **2.97x faster** | **3.53x faster** |
-| **Employee Mapping** | 18.50 µs | 83.78 µs | 80.96 µs | **4.53x faster** | **4.38x faster** |
+## ⚡ Why JetMapper?
 
-### 🧠 Memory Optimization
-
-| Scenario | FastMapper | AutoMapper | Mapster | FastMapper vs AutoMapper | FastMapper vs Mapster |
-|----------|------------|------------|---------|--------------------------|------------------------|
-| **Complex Mapping** | 216 B | 576 B | 616 B | **+167% savings** | **+185% savings** |
-| **Complex Existing Object** | 96 B | 104 B | 616 B | **+8% savings** | **+542% savings** |
-| **Bulk Mapping** | 136,760 B | 592,520 B | 615,976 B | **+333% savings** | **+350% savings** |
-| **Employee Mapping** | 48,544 B | 132,304 B | 127,976 B | **+173% savings** | **+164% savings** |
-
-## 🎯 Features
-
-- ⚡ **Ultra-Fast**: Expression tree compilation for maximum performance
+- ⚡ **Ultra-Fast**: Expression tree compilation for maximum performance - 2-4x faster than AutoMapper
 - 🧠 **Memory Optimized**: 500%+ savings in complex mappings
 - 🔒 **Type Safe**: Enhanced type compatibility checks
 - 🚀 **Low Allocation**: Minimal memory usage
 - 📦 **Lightweight**: Minimal dependencies
+- 🌐 **Multi-Platform**: .NET Standard 2.0/2.1, .NET Framework 4.6.2/4.7.2/4.8, .NET 6/7/8/9
 - 🔧 **Easy to Use**: Simple and intuitive API
 - ✨ **Fluent API**: Builder pattern for custom mappings
   - `Set()` - Property value assignment
@@ -40,103 +32,272 @@ Minimal, intuitive and ultra-fast object mapper for .NET.
 ## 📦 Installation
 
 ```bash
-dotnet add package FastMapper
+dotnet add package JetMapper
 ```
 
-## 🚀 Quick Start (Minimal Examples)
+## 🎯 Quick Start
+
+### Basic Mapping
+
+The simplest way to map objects - just one line of code with zero configuration:
 
 ```csharp
-using FastMapper;
+using JetMapper;
 
-// One-liner
-var user = new User { FirstName = "Ahmet", LastName = "Yılmaz", Age = 25 };
-var dto = user.FastMapTo<UserDto>();
+// Simple mapping
+User user = new User { FirstName = "John", LastName = "Doe" };
+UserDto dto = user.FastMapTo<UserDto>();
 
-// Collection
-var users = new[]
+// Collection mapping
+List<User> users = GetUsers();
+List<UserDto> dtos = users.FastMapToList<User, UserDto>();
+```
+
+### Fluent API
+
+Build complex mappings with custom transformations and property assignments:
+
+```csharp
+PersonDto dto = person.Builder()
+    .MapTo<PersonDto>()
+    .Set(d => d.FullName, p => $"{p.FirstName} {p.LastName}")
+    .Set(d => d.Age, p => DateTime.Now.Year - p.BirthDate.Year)
+    .Ignore(d => d.Password)
+    .Create();
+```
+
+## ✨ Advanced Features
+
+### Conditional Mapping
+
+Assign values based on conditions - perfect for status fields and business logic:
+
+```csharp
+AccountDto dto = account.Builder()
+    .MapTo<AccountDto>()
+    .SetIf(d => d.Status, a => a.IsActive, a => "Active")
+    .SetIf(d => d.Status, a => !a.IsActive, a => "Inactive")
+    .Create();
+```
+
+### Priority Assignment
+
+Choose the first available non-null value from multiple properties:
+
+```csharp
+ContactDto dto = contact.Builder()
+    .MapTo<ContactDto>()
+    .SetFirstIfExist(d => d.PreferredContact,
+        (d => d.Email, c => $"📧 {c.Email}"),
+        (d => d.Phone, c => $"📱 {c.Phone}"),
+        (d => d.Address, c => $"🏠 {c.Address}"))
+    .Create();
+```
+
+### Lifecycle Hooks
+
+Execute custom logic before and after mapping - ideal for logging and validation:
+
+```csharp
+OrderDto dto = order.Builder()
+    .MapTo<OrderDto>()
+    .BeforeMap((src, dest) => Console.WriteLine("Starting..."))
+    .Set(d => d.OrderNumber, o => $"#ORD-{o.Id}")
+    .AfterMap((src, dest) => Console.WriteLine("Completed!"))
+    .Create();
+```
+
+### Async Mapping
+
+Process large datasets asynchronously with real-time progress tracking:
+
+```csharp
+List<User> users = GetLargeUserList(); // 10,000+ records
+
+Progress<AsyncMapper.MappingProgress> progress = new Progress<AsyncMapper.MappingProgress>(p =>
+    Console.WriteLine($"Processing: {p.Percentage:F1}%"));
+
+List<UserDto> dtos = await AsyncMapper.MapAsync<User, UserDto>(users, progress);
+```
+
+### Diff Mapping
+
+Compare two objects and detect changes automatically:
+
+```csharp
+DiffResult diff = DiffMapper.FindDifferences(originalUser, updatedUser);
+
+if (diff.HasDifferences)
 {
-    new User { FirstName = "Ahmet", LastName = "Yılmaz", Age = 25 },
-    new User { FirstName = "Ayşe", LastName = "Demir", Age = 30 },
-    new User { FirstName = "Mehmet", LastName = "Kaya", Age = 28 }
-};
-var dtos = users.FastMapToList<User, UserDto>();
+    Console.WriteLine($"Found {diff.Differences.Count} changes");
+    Console.WriteLine($"Similarity: {diff.SimilarityPercentage:F1}%");
+}
 ```
 
-## ✨ Fluent API — Minimal
+### Type Converters
+
+Register custom type converters and enable automatic enum conversions:
 
 ```csharp
-// Set
-var setDto = user.Builder()
-    .MapTo<UserDto>()
-    .Set(t => t.FullName, s => $"{s.FirstName} {s.LastName}")
-    .Create();
-
-// SetIf
-var setIfDto = user.Builder()
-    .MapTo<UserDto>()
-    .SetIf(t => t.Age, s => s.Age > 0, s => s.Age)
-    .Create();
-
-// Existing object
-var existing = new UserDto { FirstName = "Old", LastName = "Value" };
-user.FastMapTo(existing);
-
-// TypeConverter (int -> string)
+// Register custom converters
 MapperExtensions.AddTypeConverter<int, string>(n => n.ToString());
-var report = user.FastMapTo<ReportDto>();
+MapperExtensions.AddTypeConverter<DateTime, string>(dt => dt.ToString("yyyy-MM-dd"));
 
-// Custom mapping
-MapperExtensions.AddCustomMapping<User, ReportDto>(
-    "FirstName", "DisplayName",
-    src => $"{((User)src).FirstName} {((User)src).LastName}"
-);
-var report2 = user.FastMapTo<ReportDto>();
+// Automatic enum conversions
+ApiOrder apiOrder = new ApiOrder { Status = "processing" };
+OrderDto dto = apiOrder.FastMapTo<OrderDto>(); // Status = OrderStatus.Processing
 ```
 
-// Hooks (BeforeMap/AfterMap)
+## 📊 Performance
+
+**Benchmark Results (Apple M2, .NET 6)**
+
+| Scenario | JetMapper | AutoMapper | Speed Gain |
+|----------|-----------|------------|------------|
+| Complex Mapping | 94 ns | 259 ns | **2.76x faster** |
+| Bulk Mapping (1000) | 73 µs | 216 µs | **2.97x faster** |
+| Employee Mapping | 19 µs | 84 µs | **4.53x faster** |
+
+| Memory Usage | JetMapper | AutoMapper | Savings |
+|--------------|-----------|------------|---------|
+| Complex | 216 B | 576 B | **167%** |
+| Bulk (1000) | 137 KB | 593 KB | **333%** |
+| Employee | 49 KB | 132 KB | **173%** |
+
+## 🎯 API Reference
+
+| Method | Description |
+|--------|-------------|
+| `FastMapTo<T>()` | Simple one-line mapping |
+| `Builder()` | Start fluent mapping |
+| `Set()` | Assign property value |
+| `SetIf()` | Conditional assignment |
+| `SetFirstIfExist()` | Priority-based assignment |
+| `Ignore()` | Skip property |
+| `BeforeMap()` / `AfterMap()` | Lifecycle hooks |
+| `Create()` | Execute mapping |
+
+## 🔧 Advanced Features
+
+### MappingValidator
+
+Validate mappings at compile-time to catch errors early:
+
 ```csharp
-var result = source.Builder()
-    .MapTo<Target>()
-    .BeforeMap((src, dest) => Console.WriteLine("Mapping started..."))
-    .Set(d => d.Name, s => s.FullName)
-    .AfterMap((src, dest) => Console.WriteLine("Mapping completed!"))
+ValidationResult result = MappingValidator.ValidateMapping<Person, PersonDto>();
+if (!result.IsValid)
+{
+    foreach (ValidationError error in result.Errors)
+        Console.WriteLine($"❌ {error.PropertyName}: {error.Message}");
+}
+```
+
+### Snapshot & Restore
+
+Save and restore object states for undo/redo functionality:
+
+```csharp
+Snapshot snapshot = AsyncMapper.CreateSnapshot(user);
+// Make changes...
+User restored = AsyncMapper.RestoreFromSnapshot<User>(snapshot.Id);
+```
+
+### Diagnostic Mapper
+
+Profile performance and track metrics:
+
+```csharp
+PerformanceProfile profile = DiagnosticMapper.StartPerformanceProfile("UserMapping");
+// Perform mappings...
+PerformanceResult result = DiagnosticMapper.EndPerformanceProfile("UserMapping");
+Console.WriteLine($"Average: {result.AverageMappingTime.TotalMicroseconds:F2}µs");
+```
+
+### Partial Merge
+
+Merge specific properties from source to target:
+
+```csharp
+MergeResult result = MergeMapper.PartialMerge(targetUser, sourceUser, "FirstName", "LastName");
+```
+
+## 🌐 Platform Support
+
+- .NET Standard 2.0, 2.1
+- .NET Framework 4.6.2, 4.7.2, 4.8
+- .NET 6.0, 7.0, 8.0, 9.0
+
+## 💡 Real-World Example
+
+**E-Commerce Order Processing** - Transform database entities to view models with complex business logic:
+
+```csharp
+public class OrderEntity
+{
+    public int Id { get; set; }
+    public decimal Amount { get; set; }
+    public decimal Tax { get; set; }
+    public bool IsPaid { get; set; }
+    public bool IsShipped { get; set; }
+    public string CustomerEmail { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class OrderViewModel
+{
+    public string OrderNumber { get; set; }
+    public string TotalPrice { get; set; }
+    public string Status { get; set; }
+    public string ContactInfo { get; set; }
+}
+
+OrderEntity order = new OrderEntity
+{
+    Id = 12345,
+    Amount = 500m,
+    Tax = 90m,
+    IsPaid = true,
+    IsShipped = false,
+    CustomerEmail = "customer@example.com",
+    CreatedAt = DateTime.Now.AddDays(-2)
+};
+
+OrderViewModel viewModel = order.Builder()
+    .MapTo<OrderViewModel>()
+    .Set(vm => vm.OrderNumber, o => $"#ORD-{o.Id}")
+    .Set(vm => vm.TotalPrice, o => $"${(o.Amount + o.Tax):F2}")
+    .SetIf(vm => vm.Status, o => o.IsPaid && o.IsShipped, o => "✅ Delivered")
+    .SetIf(vm => vm.Status, o => o.IsPaid && !o.IsShipped, o => "🚚 In Transit")
+    .SetIf(vm => vm.Status, o => !o.IsPaid, o => "⏳ Awaiting Payment")
+    .Set(vm => vm.ContactInfo, o => $"📧 {o.CustomerEmail}")
     .Create();
+
+// Result:
+// OrderNumber = "#ORD-12345"
+// TotalPrice = "$590.00"
+// Status = "🚚 In Transit"
+// ContactInfo = "📧 customer@example.com"
 ```
 
-Tip: See `ExampleConsoleApp/Program.cs` for a runnable, minimalist demo.
+## 📚 Documentation
 
-## ⚡ Performance Note
+For detailed examples and advanced usage:
+- Run benchmarks: `dotnet run -c Release` in `benchmarks/JetMapper.Benchmarks`
+- View examples: Check `JetMapper.Console/Program.cs`
 
-- 100,000 mappings ≈ 20–30ms on Apple M2 (.NET 6)  
-- Full results: `benchmarks/FastMapper.Benchmarks`
+## 🤝 Contributing
 
-### 🏆 Key Findings
-
-- **Complex Mapping**: FastMapper is **2.76x** faster than AutoMapper and **2.67x** faster than Mapster
-- **Complex Existing Object**: FastMapper is **2.60x** faster than AutoMapper and **3.24x** faster than Mapster
-- **Bulk Mapping**: FastMapper is **2.97x** faster than AutoMapper and **3.53x** faster than Mapster
-- **Employee Mapping**: FastMapper is **4.53x** faster than AutoMapper and **4.38x** faster than Mapster
-- **Memory Efficiency**: 500%+ memory savings in complex scenarios
-- **Type Safety**: Runtime errors prevented
-
-## 🧩 Models (used in examples)
-
-```csharp
-public class User { public string FirstName { get; set; } public string LastName { get; set; } public int Age { get; set; } }
-public class UserDto { public string FirstName { get; set; } public string LastName { get; set; } public int Age { get; set; } public string FullName { get; set; } }
-public class ReportDto { public string DisplayName { get; set; } public string Age { get; set; } }
-```
+Contributions are welcome! Feel free to:
+- Report bugs via [GitHub Issues](https://github.com/mennansevim/jet-mapper/issues)
+- Submit pull requests
+- Suggest new features
 
 ## 📄 License
 
-MIT — see `LICENSE`
-
-## 🙏 Acknowledgments
-
-- [AutoMapper](https://github.com/AutoMapper/AutoMapper) - For comparison
-- [Mapster](https://github.com/MapsterMapper/Mapster) - For comparison
-- [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet) - Benchmark framework
+MIT License - See [LICENSE](LICENSE) file for details.
 
 ---
 
-FastMapper — Simple. Fast. Powerful. 🚀
+**Made with ❤️ for the .NET community**
+
+[GitHub](https://github.com/mennansevim/jet-mapper) • [NuGet](https://www.nuget.org/packages/JetMapper) • [Report Issue](https://github.com/mennansevim/jet-mapper/issues)

@@ -399,4 +399,9 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Mac OS
-.DS_Store 
+.DS_Store
+
+# Large public assets (use CDN or external hosting)
+**/public/*.png
+**/public/*.jpg
+**/public/*.gif 

@@ -1,8 +1,0 @@
-﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003ATimeSpan_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003FLibrary_003FApplication_0020Support_003FJetBrains_003FRider2024_002E3_003Fresharper_002Dhost_003FDecompilerCache_003Fdecompiler_003F367e67348ed24b93b4d4624bbed780dfb58200_003Fe1_003Fd80cf2be_003FTimeSpan_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2f374d82_002Dd961_002D46ce_002Dab8b_002D743f6f6e75cf/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="CanMapSimpleProperties" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;Project Location="/Users/sevimm/Documents/Projects/fast-mapper/tests/FastMapper.Tests" Presentation="&amp;lt;tests&amp;gt;\&amp;lt;FastMapper.Tests&amp;gt;" /&gt;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=84f6b9a7_002D0149_002D4766_002D81a6_002D8deaf27c8a8b/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Session" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;Project Location="/Users/sevimm/Documents/Projects/fast-mapper/tests/FastMapper.Tests" Presentation="&amp;lt;tests&amp;gt;\&amp;lt;FastMapper.Tests&amp;gt;" /&gt;
-&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
