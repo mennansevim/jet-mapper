@@ -1,17 +1,15 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/mennansevim/jet-mapper/master/src/JetMapper/public/bg.jpg" alt="JetMapper" width="700" />
-</p>
+<div align="center">
 
-<h1 align="center">🚀 JetMapper</h1>
+![JetMapper](https://raw.githubusercontent.com/mennansevim/jet-mapper/master/src/JetMapper/public/bg.jpg)
 
-<p align="center">
-  <strong>A high-performance .NET object mapper - 2-4x faster than AutoMapper with 500%+ less memory usage.</strong>
-</p>
+# 🚀 JetMapper
 
-<p align="center">
-  <a href="https://www.nuget.org/packages/JetMapper"><img src="https://img.shields.io/nuget/v/JetMapper.svg" alt="NuGet"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
-</p>
+**A high-performance .NET object mapper - 2-4x faster than AutoMapper with 500%+ less memory usage.**
+
+[![NuGet](https://img.shields.io/nuget/v/JetMapper.svg)](https://www.nuget.org/packages/JetMapper)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+</div>
 
 ## ⚡ Why JetMapper?
 
