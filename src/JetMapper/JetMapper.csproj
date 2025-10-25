@@ -5,7 +5,7 @@
     <RootNamespace>JetMapper</RootNamespace>
     <AssemblyName>JetMapper</AssemblyName>
     <PackageId>JetMapper</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Mennan Sevim</Authors>
     <Company>JetMapper</Company>
     <Product>JetMapper</Product>
@@ -20,6 +20,11 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>jetmapper.png</PackageIcon>
     <PackageReleaseNotes>
+      v1.2.0: Quality &amp; Performance Release
+      - 🐛 Fixed compiler warnings for cleaner builds
+      - 📝 Enhanced documentation with social links
+      - ✨ Code quality improvements
+      
       v1.1.0: Multi-Platform Support Release
       - 🎯 Extended platform support: .NET Standard 2.0/2.1, .NET Framework 4.6.2/4.7.2/4.8, .NET 6/7/8/9
       - 🌐 Cross-platform compatibility for maximum reach
