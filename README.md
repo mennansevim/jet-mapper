@@ -1,5 +1,3 @@
-<div align="center">
-
 ![JetMapper](https://raw.githubusercontent.com/mennansevim/jet-mapper/master/src/JetMapper/public/bg.jpg)
 
 # 🚀 JetMapper
@@ -9,7 +7,6 @@
 [![NuGet](https://img.shields.io/nuget/v/JetMapper.svg)](https://www.nuget.org/packages/JetMapper)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-</div>
 
 ## ⚡ Why JetMapper?
 
