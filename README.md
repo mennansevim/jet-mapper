@@ -1,35 +1,32 @@
 ![JetMapper](https://raw.githubusercontent.com/mennansevim/jet-mapper/master/src/JetMapper/public/bg.jpg)
 
-# JetMapper
+# 🚀 JetMapper
 
 **A high-performance .NET object mapper - 2-4x faster than AutoMapper with 500%+ less memory usage.**
 
-[![NuGet](https://img.shields.io/nuget/v/JetMapper.svg)](https://www.nuget.org/packages/JetMapper)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+## ⚡ Why JetMapper?
 
-## Why JetMapper?
-
-- **Ultra-Fast**: Expression tree compilation for maximum performance - 2-4x faster than AutoMapper
-- **Memory Optimized**: 500%+ savings in complex mappings
-- **Type Safe**: Enhanced type compatibility checks
-- **Low Allocation**: Minimal memory usage
-- **Lightweight**: Minimal dependencies
-- **Multi-Platform**: .NET Standard 2.0/2.1, .NET Framework 4.6.2/4.7.2/4.8, .NET 6/7/8/9
-- **Easy to Use**: Simple and intuitive API
-- **Fluent API**: Builder pattern for custom mappings
+- ⚡ **Ultra-Fast**: Expression tree compilation for maximum performance - 2-4x faster than AutoMapper
+- 🧠 **Memory Optimized**: 500%+ savings in complex mappings
+- 🔒 **Type Safe**: Enhanced type compatibility checks
+- 🚀 **Low Allocation**: Minimal memory usage
+- 📦 **Lightweight**: Minimal dependencies
+- 🌐 **Multi-Platform**: .NET Standard 2.0/2.1, .NET Framework 4.6.2/4.7.2/4.8, .NET 6/7/8/9
+- 🔧 **Easy to Use**: Simple and intuitive API
+- ✨ **Fluent API**: Builder pattern for custom mappings
   - `Set()` - Property value assignment
   - `SetIf()` - Conditional value assignment
   - `SetFirstIfExist()` - First available property assignment
   - `Ignore()` - Ignore sensitive properties
   - `BeforeMap()`/`AfterMap()` - Lifecycle hooks
 
-## Installation
+## 📦 Installation
 
 ```bash
   dotnet add package JetMapper
 ```
 
-## Quick Start
+## 🎯 Quick Start
 
 ### Basic Mapping
 
@@ -60,7 +57,7 @@ PersonDto dto = person.Builder()
     .Create();
 ```
 
-## Advanced Features
+## ✨ Advanced Features
 
 ### Conditional Mapping
 
@@ -142,7 +139,7 @@ ApiOrder apiOrder = new ApiOrder { Status = "processing" };
 OrderDto dto = apiOrder.FastMapTo<OrderDto>(); // Status = OrderStatus.Processing
 ```
 
-## Performance
+## 📊 Performance
 
 **Benchmark Results (Apple M2, .NET 6)**
 
@@ -158,7 +155,7 @@ OrderDto dto = apiOrder.FastMapTo<OrderDto>(); // Status = OrderStatus.Processin
 | Bulk (1000) | 137 KB | 593 KB | **333%** |
 | Employee | 49 KB | 132 KB | **173%** |
 
-## API Reference
+## 🎯 API Reference
 
 | Method | Description |
 |--------|-------------|
@@ -171,7 +168,7 @@ OrderDto dto = apiOrder.FastMapTo<OrderDto>(); // Status = OrderStatus.Processin
 | `BeforeMap()` / `AfterMap()` | Lifecycle hooks |
 | `Create()` | Execute mapping |
 
-## Advanced Configuration
+## 🔧 Advanced Features
 
 ### MappingValidator
 
@@ -215,13 +212,13 @@ Merge specific properties from source to target:
 MergeResult result = MergeMapper.PartialMerge(targetUser, sourceUser, "FirstName", "LastName");
 ```
 
-## Platform Support
+## 🌐 Platform Support
 
 - .NET Standard 2.0, 2.1
 - .NET Framework 4.6.2, 4.7.2, 4.8
 - .NET 6.0, 7.0, 8.0, 9.0
 
-## Real-World Example
+## 💡 Real-World Example
 
 **E-Commerce Order Processing** - Transform database entities to view models with complex business logic:
 
@@ -273,20 +270,20 @@ OrderViewModel viewModel = order.Builder()
 // ContactInfo = "📧 customer@example.com"
 ```
 
-## Documentation
+## 📚 Documentation
 
 For detailed examples and advanced usage:
 - Run benchmarks: `dotnet run -c Release` in `benchmarks/JetMapper.Benchmarks`
 - View examples: Check `JetMapper.Console/Program.cs`
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Feel free to:
 - Report bugs via [GitHub Issues](https://github.com/mennansevim/jet-mapper/issues)
 - Submit pull requests
 - Suggest new features
 
-## License
+## 📄 License
 
 MIT License - See [LICENSE](LICENSE) file for details.
 

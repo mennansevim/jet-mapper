@@ -5,7 +5,7 @@
     <RootNamespace>JetMapper</RootNamespace>
     <AssemblyName>JetMapper</AssemblyName>
     <PackageId>JetMapper</PackageId>
-    <Version>1.2.4</Version>
+    <Version>1.2.3</Version>
     <Authors>Mennan Sevim</Authors>
     <Company>JetMapper</Company>
     <Product>JetMapper</Product>
@@ -20,45 +20,41 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>jetmapper.png</PackageIcon>
     <PackageReleaseNotes>
-      v1.2.4: Clean Documentation
-      - 🎨 Removed badges for minimalist design
-      - 📝 Cleaner README presentation
-      
       v1.2.3: Final Documentation Polish
-      - 📝 Optimized README formatting for all platforms
-      - 🎨 Enhanced visual presentation
+      - Optimized README formatting for all platforms
+      - Enhanced visual presentation
       
       v1.2.2: NuGet Compatibility Fix
-      - 📝 Converted README from HTML to Markdown for better NuGet.org rendering
-      - 🎨 Improved documentation display across all platforms
+      - Converted README from HTML to Markdown for better NuGet.org rendering
+      - Improved documentation display across all platforms
       
       v1.2.1: Documentation Fix
-      - 🖼️ Fixed README image display on NuGet and GitHub
-      - 📝 Updated image paths to use GitHub raw URLs
+      - Fixed README image display on NuGet and GitHub
+      - Updated image paths to use GitHub raw URLs
       
       v1.2.0: Quality &amp; Performance Release
-      - 🐛 Fixed compiler warnings for cleaner builds
-      - 📝 Enhanced documentation with social links
-      - ✨ Code quality improvements
+      - Fixed compiler warnings for cleaner builds
+      - Enhanced documentation with social links
+      - Code quality improvements
       
       v1.1.0: Multi-Platform Support Release
-      - 🎯 Extended platform support: .NET Standard 2.0/2.1, .NET Framework 4.6.2/4.7.2/4.8, .NET 6/7/8/9
-      - 🌐 Cross-platform compatibility for maximum reach
+      - Extended platform support: .NET Standard 2.0/2.1, .NET Framework 4.6.2/4.7.2/4.8, .NET 6/7/8/9
+      - Cross-platform compatibility for maximum reach
       
       v1.0.0: Initial Release - JetMapper - Lightning-Fast Object Mapper
-      - ⚡ 2-4x faster than AutoMapper
-      - 🧠 500%+ memory savings in complex scenarios
-      - ✨ Fluent API with Builder Pattern (Set, SetIf, SetFirstIfExist, Ignore, Hooks)
-      - ⚡ Async Mapping with progress tracking
-      - 🔍 Diff Mapping for object comparison
-      - 💾 Snapshot &amp; Restore for undo/redo
-      - ✅ Mapping Validator for compile-time validation
-      - 🔧 Enhanced Type Converters and Custom Mapping
-      - 📊 Diagnostic &amp; Profiling tools
-      - 🔄 Partial Merge strategies
-      - 📚 Comprehensive documentation (English &amp; Turkish)
-      - 🎯 Zero configuration required
-      - 🚀 Production ready
+      - 2-4x faster than AutoMapper
+      - 500%+ memory savings in complex scenarios
+      - Fluent API with Builder Pattern (Set, SetIf, SetFirstIfExist, Ignore, Hooks)
+      - Async Mapping with progress tracking
+      - Diff Mapping for object comparison
+      - Snapshot &amp; Restore for undo/redo
+      - Mapping Validator for compile-time validation
+      - Enhanced Type Converters and Custom Mapping
+      - Diagnostic &amp; Profiling tools
+      - Partial Merge strategies
+      - Comprehensive documentation (English &amp; Turkish)
+      - Zero configuration required
+      - Production ready
     </PackageReleaseNotes>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
