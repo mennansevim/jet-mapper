@@ -4,10 +4,6 @@
 
 **A high-performance .NET object mapper - 2-4x faster than AutoMapper with 500%+ less memory usage.**
 
-[![NuGet](https://img.shields.io/nuget/v/JetMapper.svg)](https://www.nuget.org/packages/JetMapper)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
-
 ## ⚡ Why JetMapper?
 
 - ⚡ **Ultra-Fast**: Expression tree compilation for maximum performance - 2-4x faster than AutoMapper
