@@ -5,7 +5,7 @@
     <RootNamespace>JetMapper</RootNamespace>
     <AssemblyName>JetMapper</AssemblyName>
     <PackageId>JetMapper</PackageId>
-    <Version>1.2.3</Version>
+    <Version>1.2.4</Version>
     <Authors>Mennan Sevim</Authors>
     <Company>JetMapper</Company>
     <Product>JetMapper</Product>
@@ -20,6 +20,10 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>jetmapper.png</PackageIcon>
     <PackageReleaseNotes>
+      v1.2.4: Clean Documentation
+      - 🎨 Removed badges for minimalist design
+      - 📝 Cleaner README presentation
+      
       v1.2.3: Final Documentation Polish
       - 📝 Optimized README formatting for all platforms
       - 🎨 Enhanced visual presentation
