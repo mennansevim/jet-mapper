@@ -5,7 +5,7 @@
     <RootNamespace>JetMapper</RootNamespace>
     <AssemblyName>JetMapper</AssemblyName>
     <PackageId>JetMapper</PackageId>
-    <Version>1.2.1</Version>
+    <Version>1.2.2</Version>
     <Authors>Mennan Sevim</Authors>
     <Company>JetMapper</Company>
     <Product>JetMapper</Product>
@@ -20,6 +20,10 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>jetmapper.png</PackageIcon>
     <PackageReleaseNotes>
+      v1.2.2: NuGet Compatibility Fix
+      - 📝 Converted README from HTML to Markdown for better NuGet.org rendering
+      - 🎨 Improved documentation display across all platforms
+      
       v1.2.1: Documentation Fix
       - 🖼️ Fixed README image display on NuGet and GitHub
       - 📝 Updated image paths to use GitHub raw URLs
