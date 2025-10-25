@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/JetMapper/public/bg.png" alt="JetMapper" width="600" />
+  <img src="src/JetMapper/public/bg.jpg" alt="JetMapper" width="700" />
 </p>
 
 <h1 align="center">🚀 JetMapper</h1>
@@ -32,7 +32,7 @@
 ## 📦 Installation
 
 ```bash
-dotnet add package JetMapper
+  dotnet add package JetMapper
 ```
 
 ## 🎯 Quick Start
@@ -299,5 +299,15 @@ MIT License - See [LICENSE](LICENSE) file for details.
 ---
 
 **Made with ❤️ for the .NET community**
+
+## 👨‍💻 Author
+
+**Mennan Sevim**
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mennan-sevim-0996793a/)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mennansevim)
+[![Medium](https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white)](https://medium.com/@mennan-sevim)
+
+---
 
 [GitHub](https://github.com/mennansevim/jet-mapper) • [NuGet](https://www.nuget.org/packages/JetMapper) • [Report Issue](https://github.com/mennansevim/jet-mapper/issues)
