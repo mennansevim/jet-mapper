@@ -1,8 +1,0 @@
-is_global = true
-build_property.RootNamespace = FastMapper
-build_property.ProjectDir = /Users/sevimm/Documents/Projects/fast-mapper/src/FastMapper/
-build_property.EnableComHosting = 
-build_property.EnableGeneratedComInterfaceComImportInterop = 
-build_property.CsWinRTUseWindowsUIXamlProjections = false
-build_property.EffectiveAnalysisLevelStyle = 
-build_property.EnableCodeStyleSeverity = 

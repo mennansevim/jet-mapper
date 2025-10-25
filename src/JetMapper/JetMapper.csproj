@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net462;net472;net48;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+    <RootNamespace>JetMapper</RootNamespace>
+    <AssemblyName>JetMapper</AssemblyName>
+    <PackageId>JetMapper</PackageId>
+    <Version>1.1.0</Version>
+    <Authors>Mennan Sevim</Authors>
+    <Company>JetMapper</Company>
+    <Product>JetMapper</Product>
+    <Title>JetMapper - Lightning-Fast Object Mapper (AutoMapper Alternative)</Title>
+    <Description>Lightning-fast object mapping library for .NET - 2-4x faster than AutoMapper! Features: Fluent API with Builder Pattern, Async Mapping, Diff Mapping, Snapshot/Restore, Type Converters, Mapping Validator, and more. Zero configuration, maximum performance with 500%+ memory savings in complex scenarios.</Description>
+    <Summary>2-4x faster than AutoMapper with Fluent API, Async Mapping, and advanced features. Zero configuration required.</Summary>
+    <PackageTags>mapper;automapper;mapping;performance;fast;jet;lightning;expression-tree;object-mapping;dto;fluent-api;async;diff;snapshot;validator;type-converter;builder-pattern</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/mennansevim/jet-mapper</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mennansevim/jet-mapper</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>jetmapper.png</PackageIcon>
+    <PackageReleaseNotes>
+      v1.1.0: Multi-Platform Support Release
+      - 🎯 Extended platform support: .NET Standard 2.0/2.1, .NET Framework 4.6.2/4.7.2/4.8, .NET 6/7/8/9
+      - 🌐 Cross-platform compatibility for maximum reach
+      
+      v1.0.0: Initial Release - JetMapper - Lightning-Fast Object Mapper
+      - ⚡ 2-4x faster than AutoMapper
+      - 🧠 500%+ memory savings in complex scenarios
+      - ✨ Fluent API with Builder Pattern (Set, SetIf, SetFirstIfExist, Ignore, Hooks)
+      - ⚡ Async Mapping with progress tracking
+      - 🔍 Diff Mapping for object comparison
+      - 💾 Snapshot &amp; Restore for undo/redo
+      - ✅ Mapping Validator for compile-time validation
+      - 🔧 Enhanced Type Converters and Custom Mapping
+      - 📊 Diagnostic &amp; Profiling tools
+      - 🔄 Partial Merge strategies
+      - 📚 Comprehensive documentation (English &amp; Turkish)
+      - 🎯 Zero configuration required
+      - 🚀 Production ready
+    </PackageReleaseNotes>
+    <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Copyright>Copyright © 2025 Mennan Sevim</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="public\jetmapper.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <!-- ValueTuple support for older .NET Framework versions -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462' or '$(TargetFramework)' == 'net472'">
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+
+</Project> 
