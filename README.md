@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/JetMapper/public/bg.jpg" alt="JetMapper" width="700" />
+  <img src="https://raw.githubusercontent.com/mennansevim/jet-mapper/master/src/JetMapper/public/bg.jpg" alt="JetMapper" width="700" />
 </p>
 
 <h1 align="center">🚀 JetMapper</h1>
