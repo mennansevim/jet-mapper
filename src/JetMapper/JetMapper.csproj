@@ -10,7 +10,7 @@
     <Company>JetMapper</Company>
     <Product>JetMapper</Product>
     <Title>JetMapper - Lightning-Fast Object Mapper (AutoMapper Alternative)</Title>
-    <Description>Lightning-fast object mapping library for .NET - 2-4x faster than AutoMapper! Features: Fluent API with Builder Pattern, Async Mapping, Diff Mapping, Snapshot/Restore, Type Converters, Mapping Validator, and more. Zero configuration, maximum performance with 500%+ memory savings in complex scenarios.</Description>
+    <Description>Lightning-fast object mapping library for .NET - 2-4x faster than AutoMapper! Features: Fluent API with Builder Pattern, Async Mapping, Diff Mapping, Snapshot/Restore, Type Converters, Mapping Validator, and more. Zero configuration, maximum performance with up to 80% memory savings in complex scenarios.</Description>
     <Summary>2-4x faster than AutoMapper with Fluent API, Async Mapping, and advanced features. Zero configuration required.</Summary>
     <PackageTags>mapper;automapper;mapping;performance;fast;jet;lightning;expression-tree;object-mapping;dto;fluent-api;async;diff;snapshot;validator;type-converter;builder-pattern</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -43,7 +43,7 @@
       
       v1.0.0: Initial Release - JetMapper - Lightning-Fast Object Mapper
       - 2-4x faster than AutoMapper
-      - 500%+ memory savings in complex scenarios
+      - Up to 80% memory savings in complex scenarios
       - Fluent API with Builder Pattern (Set, SetIf, SetFirstIfExist, Ignore, Hooks)
       - Async Mapping with progress tracking
       - Diff Mapping for object comparison
