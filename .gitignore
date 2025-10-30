@@ -401,7 +401,11 @@ FodyWeavers.xsd
 # Mac OS
 .DS_Store
 
+# NuGet packages folder (keep packages out of source control)
+nuget-packages/
+
 # Large public assets (use CDN or external hosting)
-**/public/*.png
-**/public/*.jpg
-**/public/*.gif 
+# Uncomment the following lines if you want to ignore large assets
+# **/public/*.png
+# **/public/*.jpg
+# **/public/*.gif 

@@ -2,12 +2,12 @@
 
 # 🚀 JetMapper
 
-**A high-performance .NET object mapper - 2-4x faster than AutoMapper with 500%+ less memory usage.**
+**A high-performance .NET object mapper - 2-4x faster than AutoMapper with up to 80% less memory usage.**
 
 ## ⚡ Why JetMapper?
 
 - ⚡ **Ultra-Fast**: Expression tree compilation for maximum performance - 2-4x faster than AutoMapper
-- 🧠 **Memory Optimized**: 500%+ savings in complex mappings
+- 🧠 **Memory Optimized**: Up to 80% memory savings in complex mappings
 - 🔒 **Type Safe**: Enhanced type compatibility checks
 - 🚀 **Low Allocation**: Minimal memory usage
 - 📦 **Lightweight**: Minimal dependencies
