@@ -1,117 +1,116 @@
 # Contributing to JetMapper
 
-🎉 Öncelikle, JetMapper projesine katkıda bulunmayı düşündüğünüz için teşekkür ederiz!
+🎉 First off, thank you for considering contributing to JetMapper!
 
-## Nasıl Katkıda Bulunabilirsiniz?
+## How Can You Contribute?
 
-### 🐛 Bug Raporlama
+### 🐛 Reporting Bugs
 
-Bug bulduysanız, lütfen bir [GitHub Issue](https://github.com/mennansevim/jet-mapper/issues) açın ve aşağıdaki bilgileri ekleyin:
+If you find a bug, please open a [GitHub Issue](https://github.com/mennansevim/jet-mapper/issues) and include the following information:
 
-- Bug'ın açık bir tanımı
-- Yeniden üretme adımları
-- Beklenen davranış
-- Gerçekleşen davranış
-- .NET versiyonu ve işletim sistemi
-- Mümkünse kod örnekleri
+- Clear description of the bug
+- Steps to reproduce
+- Expected behavior
+- Actual behavior
+- .NET version and operating system
+- Code examples if possible
 
-### ✨ Özellik Önerme
+### ✨ Suggesting Features
 
-Yeni bir özellik öneriniz varsa:
+If you have a feature suggestion:
 
-1. Önce [GitHub Issues](https://github.com/mennansevim/jet-mapper/issues) sayfasında benzer bir öneri olup olmadığını kontrol edin
-2. Yoksa yeni bir issue açın ve özelliği detaylıca açıklayın
-3. Özelliğin neden faydalı olduğunu ve nasıl kullanılacağını belirtin
+1. First check the [GitHub Issues](https://github.com/mennansevim/jet-mapper/issues) page for similar suggestions
+2. If none exists, open a new issue and describe the feature in detail
+3. Explain why the feature would be useful and how it would be used
 
-### 🔧 Pull Request Süreci
+### 🔧 Pull Request Process
 
-1. **Fork** edin ve yeni bir branch oluşturun:
+1. **Fork** the repository and create a new branch:
    ```bash
    git checkout -b feature/amazing-feature
    ```
 
-2. **Değişikliklerinizi yapın:**
-   - Kod stiline uygun yazın (.editorconfig'e uyun)
-   - Gerekli testleri ekleyin
-   - Kodunuzun tüm testleri geçtiğinden emin olun
+2. **Make your changes:**
+   - Write code that follows the style guidelines (.editorconfig)
+   - Add necessary tests
+   - Ensure all tests pass
 
-3. **Commit** edin:
+3. **Commit** your changes:
    ```bash
    git commit -m "feat: amazing new feature"
    ```
 
-4. **Push** edin:
+4. **Push** to your branch:
    ```bash
    git push origin feature/amazing-feature
    ```
 
-5. **Pull Request** açın ve:
-   - Değişikliklerinizi açıklayın
-   - İlgili issue'ları referans verin
-   - Testlerin geçtiğini doğrulayın
+5. **Open a Pull Request** and:
+   - Describe your changes
+   - Reference related issues
+   - Confirm that tests pass
 
-## 📝 Kod Standartları
+## 📝 Code Standards
 
 - **Naming Conventions**: PascalCase (class, method), camelCase (variables, parameters)
-- **Code Style**: .editorconfig dosyasına uyun
-- **Comments**: Karmaşık logic'ler için açıklayıcı yorumlar ekleyin
-- **Tests**: Yeni özellikler için unit test yazın
-- **Documentation**: Public API'lar için XML dokümantasyonu ekleyin
+- **Code Style**: Follow the .editorconfig file
+- **Comments**: Add explanatory comments for complex logic
+- **Tests**: Write unit tests for new features
+- **Documentation**: Add XML documentation for public APIs
 
-## 🧪 Testler
+## 🧪 Tests
 
-Testleri çalıştırmak için:
+To run tests:
 
 ```bash
 dotnet test
 ```
 
-Benchmark'ları çalıştırmak için:
+To run benchmarks:
 
 ```bash
 cd benchmarks/JetMapper.Benchmarks
 dotnet run -c Release
 ```
 
-## 📚 Commit Mesajları
+## 📚 Commit Messages
 
-Semantic commit mesajları kullanın:
+Use semantic commit messages:
 
-- `feat:` - Yeni özellik
-- `fix:` - Bug düzeltmesi
-- `docs:` - Dokümantasyon değişikliği
-- `style:` - Kod formatı (logic değişikliği yok)
-- `refactor:` - Kod refactoring
-- `test:` - Test ekleme/düzeltme
-- `chore:` - Diğer değişiklikler
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation change
+- `style:` - Code formatting (no logic change)
+- `refactor:` - Code refactoring
+- `test:` - Adding/fixing tests
+- `chore:` - Other changes
 
-Örnek:
+Examples:
 ```
 feat: add async batch mapping support
 fix: null reference exception in FluentMapper
 docs: update README with new examples
 ```
 
-## 🔍 Code Review Süreci
+## 🔍 Code Review Process
 
-Pull request'iniz gözden geçirilecek ve:
+Your pull request will be reviewed and:
 
-- Kod kalitesi kontrolü yapılacak
-- Testler çalıştırılacak
-- Performance etkileri değerlendirilecek
-- Dokümantasyon kontrolü yapılacak
+- Code quality will be checked
+- Tests will be run
+- Performance impacts will be evaluated
+- Documentation will be reviewed
 
-## ❓ Sorularınız mı var?
+## ❓ Questions?
 
-[GitHub Discussions](https://github.com/mennansevim/jet-mapper/discussions) bölümünü kullanabilir veya bir issue açabilirsiniz.
+You can use [GitHub Discussions](https://github.com/mennansevim/jet-mapper/discussions) or open an issue.
 
 ## 📄 License
 
-Bu projeye katkıda bulunarak, katkılarınızın [MIT License](LICENSE) altında lisanslanacağını kabul etmiş olursunuz.
+By contributing to this project, you agree that your contributions will be licensed under the [MIT License](LICENSE).
 
 ---
 
-Katkılarınız için teşekkür ederiz! 🚀
+Thank you for your contributions! 🚀
 
 **Made with ❤️ for the .NET community**
-
