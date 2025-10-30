@@ -1,61 +1,61 @@
 # Security Policy
 
-## 🔒 Güvenlik Politikası
+## 🔒 Security Policy
 
-JetMapper'ın güvenliğini ciddiye alıyoruz. Bu dokümanda, güvenlik açıkları nasıl raporlanır ve nasıl ele alınır açıklanmaktadır.
+We take the security of JetMapper seriously. This document explains how to report security vulnerabilities and how they are handled.
 
-## 📋 Desteklenen Versiyonlar
+## 📋 Supported Versions
 
-Şu anda aşağıdaki versiyonlar için güvenlik güncellemeleri sağlanmaktadır:
+Security updates are currently provided for the following versions:
 
-| Versiyon | Destekleniyor          |
-| -------- | --------------------- |
-| 1.2.x    | :white_check_mark:    |
-| 1.1.x    | :white_check_mark:    |
-| 1.0.x    | :x:                   |
-| < 1.0    | :x:                   |
+| Version | Supported             |
+| ------- | --------------------- |
+| 1.2.x   | :white_check_mark:    |
+| 1.1.x   | :white_check_mark:    |
+| 1.0.x   | :x:                   |
+| < 1.0   | :x:                   |
 
-## 🚨 Güvenlik Açığı Bildirme
+## 🚨 Reporting a Vulnerability
 
-### Lütfen güvenlik açıklarını public issue olarak bildirmeyin!
+### Please do not report security vulnerabilities as public issues!
 
-Güvenlik açığı bulduysanız, lütfen aşağıdaki adımları izleyin:
+If you discover a security vulnerability, please follow these steps:
 
-### 1. Özel Bildirim
+### 1. Private Disclosure
 
-Güvenlik sorunlarını **mennansevim@gmail.com** adresine gönderin.
+Send security issues to **mennansevim@gmail.com**.
 
-E-postanızda şunları ekleyin:
+Include in your email:
 
-- Açığın detaylı açıklaması
-- Sorunu yeniden üretme adımları
-- Etkilenen versiyonlar
-- Potansiyel etki analizi
-- Varsa, önerilen düzeltme
+- Detailed description of the vulnerability
+- Steps to reproduce the issue
+- Affected versions
+- Potential impact analysis
+- Suggested fix, if available
 
-### 2. Beklenen Yanıt Süresi
+### 2. Expected Response Time
 
-- **24 saat içinde**: İlk yanıt ve onay
-- **48 saat içinde**: Sorunun değerlendirilmesi
-- **7 gün içinde**: Düzeltme için plan ve tahmini süre
-- **30 gün içinde**: Düzeltme yayınlanması (kritik durumlar için daha erken)
+- **Within 24 hours**: Initial response and acknowledgment
+- **Within 48 hours**: Assessment of the issue
+- **Within 7 days**: Fix plan and estimated timeline
+- **Within 30 days**: Fix release (sooner for critical issues)
 
-### 3. Koordineli Açıklama
+### 3. Coordinated Disclosure
 
-Güvenlik açığı düzeltildikten sonra:
+After the security vulnerability is fixed:
 
-1. Düzeltme yayınlanır
-2. Güvenlik danışmanlığı yayınlanır
-3. Katkınız (istediğiniz takdirde) kabul edilir
+1. Fix is released
+2. Security advisory is published
+3. Your contribution is credited (if you wish)
 
-## 🛡️ Güvenlik En İyi Pratikleri
+## 🛡️ Security Best Practices
 
-JetMapper'ı kullanırken aşağıdaki güvenlik pratiklerini öneririz:
+We recommend the following security practices when using JetMapper:
 
-### 1. Hassas Veri İşleme
+### 1. Sensitive Data Handling
 
 ```csharp
-// Hassas özellikleri ignore edin
+// Ignore sensitive properties
 var dto = user.Builder()
     .MapTo<UserDto>()
     .Ignore(d => d.Password)
@@ -64,70 +64,69 @@ var dto = user.Builder()
     .Create();
 ```
 
-### 2. Tip Güvenliği
+### 2. Type Safety
 
 ```csharp
-// Mapping öncesi validasyon yapın
+// Validate before mapping
 ValidationResult validation = MappingValidator.ValidateMapping<Source, Destination>();
 if (!validation.IsValid)
 {
-    // Hataları ele alın
+    // Handle errors
 }
 ```
 
-### 3. Güncel Kalın
+### 3. Stay Updated
 
 ```bash
-# En son güvenlik güncellemelerini alın
+# Get the latest security updates
 dotnet add package JetMapper
 ```
 
-### 4. Dependency Kontrolü
+### 4. Dependency Check
 
-Projenizdeki tüm dependency'leri düzenli olarak güncelleyin:
+Regularly update all dependencies in your project:
 
 ```bash
 dotnet list package --outdated
 ```
 
-## 🔍 Güvenlik Kontrol Listesi
+## 🔍 Security Checklist
 
-Üretim ortamına geçmeden önce:
+Before going to production:
 
-- [ ] Hassas datalar mapping'den exclude edilmiş mi?
-- [ ] Type validation yapılıyor mu?
-- [ ] En son JetMapper versiyonu kullanılıyor mu?
-- [ ] Custom converter'lar input validation yapıyor mu?
-- [ ] Lifecycle hook'ları güvenli kod içeriyor mu?
+- [ ] Are sensitive data excluded from mapping?
+- [ ] Is type validation performed?
+- [ ] Is the latest JetMapper version being used?
+- [ ] Do custom converters perform input validation?
+- [ ] Do lifecycle hooks contain secure code?
 
-## 📝 Güvenlik Güncellemeleri
+## 📝 Security Updates
 
-Güvenlik güncellemeleri hakkında bilgi almak için:
+To stay informed about security updates:
 
-1. Bu repository'yi "Watch" edin
-2. [GitHub Security Advisories](https://github.com/mennansevim/jet-mapper/security/advisories) sayfasını takip edin
-3. [Release Notes](https://github.com/mennansevim/jet-mapper/releases) kontrol edin
+1. "Watch" this repository
+2. Follow the [GitHub Security Advisories](https://github.com/mennansevim/jet-mapper/security/advisories) page
+3. Check [Release Notes](https://github.com/mennansevim/jet-mapper/releases)
 
 ## 🏆 Hall of Fame
 
-Güvenlik açıklarını sorumlu bir şekilde bildiren katkıda bulunanlar (izinleriyle):
+Contributors who responsibly report security vulnerabilities (with their permission):
 
-- *Henüz bildirim yok*
+- *No reports yet*
 
-## 📞 İletişim
+## 📞 Contact
 
-Güvenlik soruları için:
+For security questions:
 
 - **Email**: mennansevim@gmail.com
-- **Opsiyonel**: PGP Key kullanarak şifreli email gönderebilirsiniz
+- **Optional**: You can send encrypted email using PGP Key
 
-## ⚖️ Politika Değişiklikleri
+## ⚖️ Policy Changes
 
-Bu güvenlik politikası zaman zaman güncellenebilir. Önemli değişiklikler için bildiri yapılacaktır.
+This security policy may be updated from time to time. Notifications will be made for significant changes.
 
 ---
 
-**Son Güncelleme**: Ekim 2025
+**Last Updated**: October 2025
 
-Güvenliğimizi artırmaya yardımcı olduğunuz için teşekkür ederiz! 🙏
-
+Thank you for helping us improve our security! 🙏
