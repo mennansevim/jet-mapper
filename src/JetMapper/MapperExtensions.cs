@@ -1,3 +1,4 @@
+#pragma warning disable CS0168 // Variable declared but never used (only used in DEBUG mode)
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
